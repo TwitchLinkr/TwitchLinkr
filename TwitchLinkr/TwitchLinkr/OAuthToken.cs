@@ -56,6 +56,7 @@ namespace TwitchLinkr
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+				logger.LogInformation("The failed OAuth Request: {Request}", request);
 				throw;
 			}
 		}
