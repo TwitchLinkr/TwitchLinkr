@@ -3,7 +3,12 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchLinkr", "TwitchLinkr\TwitchLinkr.csproj", "{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TwitchLinkr", "TwitchLinkr\TwitchLinkr.csproj", "{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TwitchLinkrTesterProject", "TwitchLinkrTesterProject\TwitchLinkrTesterProject.csproj", "{17250503-AABB-49B7-B45B-57DD8F9A77D1}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB} = {8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +20,10 @@ Global
 		{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F52C176-AD1B-475E-9F8C-D71CC1BD62AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17250503-AABB-49B7-B45B-57DD8F9A77D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17250503-AABB-49B7-B45B-57DD8F9A77D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17250503-AABB-49B7-B45B-57DD8F9A77D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17250503-AABB-49B7-B45B-57DD8F9A77D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
