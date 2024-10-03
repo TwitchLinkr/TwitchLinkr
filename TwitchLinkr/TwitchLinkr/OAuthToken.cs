@@ -20,6 +20,7 @@ namespace TwitchLinkr
 		/// Initializes a new instance of the <see cref="OAuthToken"/> class.
 		/// </summary>
 		/// <param name="logger">The logger to use for logging information and errors.</param>
+		/// <exception cref="ArgumentNullException">Thrown if the <paramref name="logger"/> parameter is null.</exception>
 		public OAuthToken(ILogger<OAuthToken> logger)
 		{
 			this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -32,10 +33,14 @@ namespace TwitchLinkr
 		/// Use this flow if your app does not use a server. For example, use this flow if your app is a client-side JavaScript app or mobile app.
 		/// </para>
 		/// </summary>
+		/// <param name="clientId">The client ID of your Twitch application.</param>
+		/// <param name="redirectUri">The URI to which the user will be redirected after authorization.</param>
+		/// <param name="scope">The scope of the access request.</param>
+		/// <param name="state">A unique string to be passed back upon completion. Used to prevent CSRF attacks. If not provided, a new GUID will be generated.</param>
+		/// <param name="force_verify">A boolean indicating whether to force the user to re-approve the app. Defaults to <c>false</c>.</param>
 		/// <remarks>
 		/// Token type: User Access Token
 		/// </remarks>
-		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
 		public void GetImplicitGrantFlowOAuthTokenAsync(string clientId, string redirectUri, string scope, string state = "", bool force_verify = false)
 		{
 			// Add a state parameter to prevent CSRF attacks
@@ -87,10 +92,12 @@ namespace TwitchLinkr
 		/// This flow is meant for apps that only need an app access token.
 		/// </para>
 		/// </summary>
+		/// <param name="clientId">The client ID of your Twitch application.</param>
+		/// <param name="clientSecret">The client secret of your Twitch application.</param>
 		/// <remarks>
 		/// Token type: App Access Token
 		/// </remarks>
-		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string among other details within the <see cref="OAuthTokenResponseModel"/>.</returns>
 		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		/// <exception cref="InvalidOperationException">Thrown when the access token cannot be retrieved.</exception>
 		public async Task<OAuthTokenResponseModel> GetClientCredentialsGrantFlowOAuthTokenAsync(string clientId, string clientSecret)
@@ -134,10 +141,17 @@ namespace TwitchLinkr
 		/// Use this flow if your app uses a server, can securely store a client secret, and can make server-to-server requests to the Twitch API.
 		/// </para>
 		/// </summary>
+		/// <param name="clientId">The client ID of your Twitch application.</param>
+		/// <param name="clientSecret">The client secret of your Twitch application.</param>
+		/// <param name="redirectUri">The URI to which the user will be redirected after authorization.</param>
+		/// <param name="scopes">The scope of the access request.</param>
+		/// <param name="force_verify">A boolean indicating whether to force the user to re-approve the app. Defaults to <c>false</c>.</param>
 		/// <remarks>
 		/// Token type: User Access Token
 		/// </remarks>
-		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string among other details within the <see cref="OAuthTokenResponseModel"/>.</returns>
+		/// <exception cref="InvalidOperationException">Thrown when the state does not match or the access token cannot be retrieved.</exception>
+		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		public async Task<OAuthTokenResponseModel> GetAuthorizationCodeGrantFlowOAuthTokenAsync(string clientId, string clientSecret, string redirectUri, string scopes, bool force_verify = false)
 		{
 			var state = Guid.NewGuid().ToString();
@@ -210,15 +224,19 @@ namespace TwitchLinkr
 		}
 
 		/// <summary>
-		/// Asynchronously retrieves an OAuth token using the authorization code grant flow.
+		/// Asynchronously retrieves an OAuth token using the device code grant flow.
 		/// <para>
 		/// Use this flow if your app is run on a client with limited input capabilities, such as set-top boxes or video games.
 		/// </para>
 		/// </summary>
+		/// <param name="clientId">The client ID of your Twitch application.</param>
+		/// <param name="scopes">The scope of the access request.</param>
 		/// <remarks>
 		/// Token type: User Access Token
 		/// </remarks>
-		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string among other details within the <see cref="OAuthTokenResponseModel"/>.</returns>
+		/// <exception cref="InvalidOperationException">Thrown when the device code cannot be retrieved or the access token cannot be retrieved.</exception>
+		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		public async Task<OAuthTokenResponseModel> GetDeviceCodeGrantFlowOAuthTokenAsync(string clientId, string scopes)
 		{
 			var queryParams = new Dictionary<string, string> {
@@ -234,7 +252,7 @@ namespace TwitchLinkr
 
 			try
 			{
-				
+
 				string deviceResponseBody = await EndpointCaller.CallAPIAsync(deviceRequest);
 				var deviceData = JsonSerializer.Deserialize<DeviceCodeResponseModel>(deviceResponseBody);
 
@@ -254,10 +272,17 @@ namespace TwitchLinkr
 				logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
 				throw;
 			}
-
-
 		}
 
+		/// <summary>
+		/// Polls the token endpoint until the user has authorized the app using the device code grant flow.
+		/// </summary>
+		/// <param name="clientId">The client ID of your Twitch application.</param>
+		/// <param name="scopes">The scope of the access request.</param>
+		/// <param name="deviceCode">The device code received from the device code grant flow.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
+		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
+		/// <exception cref="InvalidOperationException">Thrown when the access token cannot be retrieved.</exception>
 		private async Task<OAuthTokenResponseModel> PollDeviceCodeGrantFlowTokenAsync(string clientId, string scopes, string deviceCode)
 		{
 			var tokenEndpoint = "https://id.twitch.tv/oauth2/token";
@@ -308,6 +333,13 @@ namespace TwitchLinkr
 			}
 		}
 
+		/// <summary>
+		/// Captures the authorization code from the redirect URI.
+		/// </summary>
+		/// <param name="redirectUri">The URI to which the user will be redirected after authorization.</param>
+		/// <param name="state">The state parameter to prevent CSRF attacks.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the authorization code as a string.</returns>
+		/// <exception cref="InvalidOperationException">Thrown when the state does not match.</exception>
 		private async Task<string> CaptureAuthorizationCodeAsync(string redirectUri, string state)
 		{
 			// Start the local web server
@@ -336,12 +368,34 @@ namespace TwitchLinkr
 		}
 	}
 
+	/// <summary>
+	/// Represents the response model for the device code grant flow.
+	/// </summary>
 	internal class DeviceCodeResponseModel
 	{
+		/// <summary>
+		/// Gets or sets the device code.
+		/// </summary>
 		public string device_code { get; set; } = default!;
+
+		/// <summary>
+		/// Gets or sets the user code.
+		/// </summary>
 		public string user_code { get; set; } = default!;
+
+		/// <summary>
+		/// Gets or sets the verification URI.
+		/// </summary>
 		public string verification_uri { get; set; } = default!;
+
+		/// <summary>
+		/// Gets or sets the expiration time in seconds.
+		/// </summary>
 		public int expires_in { get; set; }
+
+		/// <summary>
+		/// Gets or sets the interval in seconds at which the client should poll the token endpoint.
+		/// </summary>
 		public int interval { get; set; }
 	}
 }
