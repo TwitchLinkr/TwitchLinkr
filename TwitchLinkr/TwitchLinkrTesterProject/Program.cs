@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using TwitchLinkr;
 
 namespace TwitchLinkrTesterProject
@@ -18,15 +20,6 @@ namespace TwitchLinkrTesterProject
 			string clientSecret = configuration["TwitchApp:ClientSecret"]!;
 
 
-			// Test endpoints
-			var token = await GetToken(clientId, clientSecret);
-			Console.WriteLine(token);
-		}
-
-
-		// Test the GetOAuthTokenAsync method
-		static async Task<string> GetToken(string clientId, string clientSecret)
-		{
 			// Set up a service collection and configure logging
 			var serviceCollection = new ServiceCollection();
 			ConfigureServices(serviceCollection);
@@ -39,7 +32,15 @@ namespace TwitchLinkrTesterProject
 
 			// Create an instance of OAuthToken with the logger
 			OAuthToken oAuthToken = new OAuthToken(logger);
-			return await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
+
+			// Test OAuthToken methods
+			//var token = await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
+			//Console.WriteLine("OAuth Token: " + token);
+
+			//oAuthToken.GetImplicitGrantFlowOAuthTokenAsync(clientId, "http://localhost:3000", "");
+
+			var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
+			Console.WriteLine("OAuth Token: " + token);
 		}
 
 		private static void ConfigureServices(IServiceCollection services)
