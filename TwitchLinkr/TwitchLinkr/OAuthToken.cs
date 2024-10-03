@@ -1,11 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
+using System.Net;
 using System.Text.Json;
+using TwitchLinkr.APIResponseModels;
 
 namespace TwitchLinkr
 {
 	/// <summary>
 	/// Provides methods to obtain OAuth tokens for server-to-server API requests.
+	/// <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow">Twitch OAuth Grant Flow documentation</see>
 	/// </summary>
+
 	public class OAuthToken
 	{
 		private readonly ILogger<OAuthToken> logger;
@@ -22,10 +26,15 @@ namespace TwitchLinkr
 		/// <summary>
 		/// Asynchronously retrieves an OAuth token using the client credentials grant flow.
 		/// </summary>
+		/// <remarks>
+		/// Use this flow if your app uses a server, can securely store a client secret, 
+		/// and can make server-to-server requests to the Twitch API.
+		/// This flow is meant for apps that only need an app access token.
+		/// </remarks>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
 		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		/// <exception cref="InvalidOperationException">Thrown when the access token cannot be retrieved.</exception>
-		public async Task<string> GetOAuthTokenAsync(string clientId, string clientSecret)
+		public async Task<string> GetClientCredentialsGrantflowOAuthTokenAsync(string clientId, string clientSecret)
 		{
 
 			var request = new HttpRequestMessage(HttpMethod.Post, "https://id.twitch.tv/oauth2/token");
@@ -55,30 +64,11 @@ namespace TwitchLinkr
 			}
 			catch (Exception ex)
 			{
-				logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+				logger.LogError(ex, "An error occurred while retrieving the 'Client credentials grant flow' OAuth token.");
 				throw;
 			}
 		}
 	}
 
-	/// <summary>
-	/// Represents the response model for the OAuth token request.
-	/// </summary>
-	public class OAuthTokenResponseModel
-	{
-		/// <summary>
-		/// Gets or sets the access token.
-		/// </summary>
-		public string access_token { get; set; }
-
-		/// <summary>
-		/// Gets or sets the type of the token.
-		/// </summary>
-		public string token_type { get; set; }
-
-		/// <summary>
-		/// Gets or sets the expiration time of the token in seconds.
-		/// </summary>
-		public int expires_in { get; set; }
-	}
+	
 }

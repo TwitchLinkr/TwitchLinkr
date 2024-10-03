@@ -39,7 +39,7 @@ namespace TwitchLinkrTesterProject
 
 			// Create an instance of OAuthToken with the logger
 			OAuthToken oAuthToken = new OAuthToken(logger);
-			return await oAuthToken.GetOAuthTokenAsync(clientId, clientSecret);
+			return await oAuthToken.GetClientCredentialsGrantflowOAuthTokenAsync(clientId, clientSecret);
 		}
 
 		private static void ConfigureServices(IServiceCollection services)
