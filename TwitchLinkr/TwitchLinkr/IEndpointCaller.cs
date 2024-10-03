@@ -15,7 +15,7 @@
 		/// <param name="clientId"></param>
 		/// <param name="content"></param>
 		/// <exception cref="HttpRequestException"></exception>"
-		/// <returns><c>API</c> response as JSON.</returns>
+		/// <returns><c>API</c> response as string in JSON format.</returns>
 		abstract public static Task<string> CallGetEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId);
 
 		/// <summary>
@@ -26,8 +26,8 @@
 		/// <param name="oauthToken"></param>
 		/// <param name="clientId"></param>
 		/// <param name="content"></param>
-		/// <exception cref="HttpRequestException"></exception>"
-		/// <returns><c>API</c> response as JSON.</returns>
+		/// <exception cref="HttpRequestException"/>
+		/// <returns><c>API</c> response as string in JSON format.</returns>
 		abstract public static Task<string> CallPostEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId, string content);
 
 
@@ -35,6 +35,7 @@
 		/// Calls the API as specified in the <paramref name="request"/>.
 		/// </summary>
 		/// <param name="request"></param>
+		/// <exception cref="HttpRequestException"/>
 		/// <returns>API response as a string </returns>
 		abstract public static Task<string> CallAPIAsync(HttpRequestMessage request);
 

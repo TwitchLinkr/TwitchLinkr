@@ -6,7 +6,7 @@ using TwitchLinkr.APIResponseModels;
 namespace TwitchLinkr
 {
 	/// <summary>
-	/// Provides methods to obtain OAuth tokens for server-to-server API requests.
+	/// Provides methods to obtain OAuth tokens for Twitch API requests.
 	/// <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow">Twitch OAuth Grant Flow documentation</see>
 	/// </summary>
 
@@ -34,7 +34,7 @@ namespace TwitchLinkr
 		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
 		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		/// <exception cref="InvalidOperationException">Thrown when the access token cannot be retrieved.</exception>
-		public async Task<string> GetClientCredentialsGrantflowOAuthTokenAsync(string clientId, string clientSecret)
+		public async Task<string> GetClientCredentialsGrantFlowOAuthTokenAsync(string clientId, string clientSecret)
 		{
 
 			var request = new HttpRequestMessage(HttpMethod.Post, "https://id.twitch.tv/oauth2/token");
@@ -61,6 +61,10 @@ namespace TwitchLinkr
 				}
 
 				return tokenData.access_token;
+			}
+			catch (HttpRequestException ex)
+			{
+
 			}
 			catch (Exception ex)
 			{
