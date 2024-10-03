@@ -8,6 +8,9 @@ namespace TwitchLinkr.APIResponseModels
 {
 	/// <summary>
 	/// Represents the response model for the OAuth token request.
+	/// <para>
+	/// This Model is used to deserialize the JSON response from the Twitch API when requesting an OAuth token. And is meant for usage with all types of OAuth token requests.
+	/// </para>
 	/// </summary>
 	internal class OAuthTokenResponseModel
 	{
