@@ -50,7 +50,9 @@ public class OAuthToken
 
 		try
 		{
-			string responseBody = await EndpointCaller.CallAPIAsync(request);
+			logger.LogInformation("Request OAuth Token: {Request}", request);
+
+            string responseBody = await EndpointCaller.CallAPIAsync(request);
 			var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(responseBody);
 
 			if (tokenData == null || string.IsNullOrEmpty(tokenData.access_token))
