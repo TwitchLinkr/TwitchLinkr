@@ -39,8 +39,11 @@ namespace TwitchLinkrTesterProject
 
 			//oAuthToken.GetImplicitGrantFlowOAuthTokenAsync(clientId, "http://localhost:3000", "");
 
-			var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
-			Console.WriteLine("OAuth Token: " + token);
+			//var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
+			//Console.WriteLine("OAuth Token: " + token);
+
+			var token = await oAuthToken.GetDeviceCodeGrantFlowOAuthTokenAsync(clientId, "");
+			Console.WriteLine("OAuth Token: " + token.access_token);
 		}
 
 		private static void ConfigureServices(IServiceCollection services)

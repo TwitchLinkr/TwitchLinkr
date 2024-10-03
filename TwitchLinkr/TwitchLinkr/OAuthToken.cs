@@ -93,7 +93,7 @@ namespace TwitchLinkr
 		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
 		/// <exception cref="HttpRequestException">Thrown when the HTTP request fails.</exception>
 		/// <exception cref="InvalidOperationException">Thrown when the access token cannot be retrieved.</exception>
-		public async Task<string> GetClientCredentialsGrantFlowOAuthTokenAsync(string clientId, string clientSecret)
+		public async Task<OAuthTokenResponseModel> GetClientCredentialsGrantFlowOAuthTokenAsync(string clientId, string clientSecret)
 		{
 			var request = new HttpRequestMessage(HttpMethod.Post, "https://id.twitch.tv/oauth2/token");
 
@@ -118,7 +118,7 @@ namespace TwitchLinkr
 					throw new InvalidOperationException("Failed to retrieve access token.");
 				}
 
-				return tokenData.access_token;
+				return tokenData;
 			}
 			catch (Exception ex)
 			{
@@ -138,7 +138,7 @@ namespace TwitchLinkr
 		/// Token type: User Access Token
 		/// </remarks>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
-		public async Task<string> GetAuthorizationCodeGrantFlowOAuthTokenAsync(string clientId, string clientSecret, string redirectUri, string scope, bool force_verify = false)
+		public async Task<OAuthTokenResponseModel> GetAuthorizationCodeGrantFlowOAuthTokenAsync(string clientId, string clientSecret, string redirectUri, string scopes, bool force_verify = false)
 		{
 			var state = Guid.NewGuid().ToString();
 
@@ -146,7 +146,7 @@ namespace TwitchLinkr
 			queryParams["client_id"] = clientId;
 			queryParams["redirect_uri"] = redirectUri;
 			queryParams["response_type"] = "code";
-			queryParams["scope"] = scope;
+			queryParams["scope"] = scopes;
 			queryParams["state"] = state;
 			queryParams["force_verify"] = force_verify.ToString().ToLower();
 
@@ -200,7 +200,7 @@ namespace TwitchLinkr
 					throw new InvalidOperationException("Failed to retrieve access token.");
 				}
 
-				return tokenData.access_token;
+				return tokenData;
 			}
 			catch (Exception ex)
 			{
@@ -219,11 +219,94 @@ namespace TwitchLinkr
 		/// Token type: User Access Token
 		/// </remarks>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the access token as a string.</returns>
-		public async Task<string> GetDeviceCodeGrantFlowOAuthTokenAsync(string clientId, string redirectUri, string scope)
+		public async Task<OAuthTokenResponseModel> GetDeviceCodeGrantFlowOAuthTokenAsync(string clientId, string scopes)
 		{
-			throw new NotImplementedException();
+			var queryParams = new Dictionary<string, string> {
+				{ "client_id", clientId},
+				{ "scopes", scopes    }
+			};
+
+			var deviceRequestContent = new FormUrlEncodedContent(queryParams);
+			var deviceRequest = new HttpRequestMessage(HttpMethod.Post, "https://id.twitch.tv/oauth2/device")
+			{
+				Content = deviceRequestContent
+			};
+
+			try
+			{
+				
+				string deviceResponseBody = await EndpointCaller.CallAPIAsync(deviceRequest);
+				var deviceData = JsonSerializer.Deserialize<DeviceCodeResponseModel>(deviceResponseBody);
+
+				if (deviceData == null || string.IsNullOrEmpty(deviceData.device_code))
+				{
+					logger.LogError("Failed to retrieve device code. Response: {ResponseBody}", deviceResponseBody);
+					throw new InvalidOperationException("Failed to retrieve device code.");
+				}
+
+				logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", deviceData.verification_uri);
+
+				// Poll the token endpoint until the user has authorized the app
+				return await PollDeviceCodeGrantFlowTokenAsync(clientId, scopes, deviceData.device_code); ;
+			}
+			catch (Exception ex)
+			{
+				logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+				throw;
+			}
+
+
 		}
 
+		private async Task<OAuthTokenResponseModel> PollDeviceCodeGrantFlowTokenAsync(string clientId, string scopes, string deviceCode)
+		{
+			var tokenEndpoint = "https://id.twitch.tv/oauth2/token";
+			var parameters = new Dictionary<string, string>
+			{
+				{ "client_id", clientId },
+				{ "device_code", deviceCode },
+				{ "grant_type", "urn:ietf:params:oauth:grant-type:device_code" },
+				{ "scopes", scopes }
+			};
+
+			while (true)
+			{
+				var content = new FormUrlEncodedContent(parameters);
+				var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
+				{
+					Content = content
+				};
+
+				try
+				{
+					string responseBody = await EndpointCaller.CallAPIAsync(request);
+					var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(responseBody);
+
+					if (tokenData != null && !string.IsNullOrEmpty(tokenData.access_token))
+					{
+						return tokenData;
+					}
+
+					// Handle specific error responses if needed
+					// For example, if the response indicates that the user has not yet authorized the device, you might want to wait and retry
+				}
+				catch (HttpRequestException ex)
+				{
+					if (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
+					{
+						// Handle 400 Bad Request specifically, which might indicate that the device code is not yet authorized
+						logger.LogWarning("The device code has not yet been authorized. Retrying in 5 seconds.");
+						await Task.Delay(TimeSpan.FromSeconds(5)); // Adjust the delay as needed
+						continue;
+					}
+					logger.LogError(ex, "An error occurred while polling the OAuth token.");
+					throw;
+				}
+
+				// Wait for the interval specified by the device code response before polling again
+				await Task.Delay(TimeSpan.FromSeconds(5)); // Adjust the delay as needed
+			}
+		}
 
 		private async Task<string> CaptureAuthorizationCodeAsync(string redirectUri, string state)
 		{
@@ -253,5 +336,12 @@ namespace TwitchLinkr
 		}
 	}
 
-
+	internal class DeviceCodeResponseModel
+	{
+		public string device_code { get; set; } = default!;
+		public string user_code { get; set; } = default!;
+		public string verification_uri { get; set; } = default!;
+		public int expires_in { get; set; }
+		public int interval { get; set; }
+	}
 }
