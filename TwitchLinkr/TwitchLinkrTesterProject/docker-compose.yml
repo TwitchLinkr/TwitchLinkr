@@ -1,6 +1,4 @@
-﻿version: "3"
-
-networks:
+﻿networks:
   loki:
     
 services:
@@ -21,7 +19,7 @@ services:
     volumes:
       - ./grafana:/var/lib/grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     restart: unless-stopped
     networks:
       - loki
