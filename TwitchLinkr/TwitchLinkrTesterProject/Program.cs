@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Debugging;
@@ -33,9 +34,14 @@ internal class Program
             // Start Logging
             Log.Information("Starting application");
             
-            // Hardcoded client ID and client secret
-            string clientId = "your-client-id";
-            string clientSecret = "your-client-secret";
+            // Set up configuration to read from user secrets
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<Program>()  // Add user secrets for this project
+                .Build();
+            
+            // Get the client id and secret from the environment variables
+            string clientId = configuration["TwitchApp:ClientId"]!;
+            string clientSecret = configuration["TwitchApp:ClientSecret"]!;
 
             // Set up a service collection and configure logging
             var serviceCollection = new ServiceCollection();
@@ -43,10 +49,25 @@ internal class Program
 
             // Build the service provider
             var serviceProvider = serviceCollection.BuildServiceProvider();
+            
+            // Get the logger
+            var logger = serviceProvider.GetRequiredService<ILogger<OAuthToken>>();
+            
+            // Create a new OAuthToken instance
+            OAuthToken oAuthToken = new OAuthToken(logger);
+            
+            // Test OAuthToken methods
+            var token = await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
+            Console.WriteLine("OAuth Token: " + token);
 
-            // Test endpoints
-            var token = await GetToken(serviceProvider, clientId, clientSecret);
-            Console.WriteLine(token);
+            //oAuthToken.GetImplicitGrantFlowOAuthTokenAsync(clientId, "http://localhost:3000", "");
+
+            //var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
+            //Console.WriteLine("OAuth Token: " + token);
+
+            //var token = await oAuthToken.GetDeviceCodeGrantFlowOAuthTokenAsync(clientId, "");
+            //Console.WriteLine("OAuth Token: " + token.access_token);
+        
             
             Log.Information("Application completed successfully");
         }
@@ -57,17 +78,6 @@ internal class Program
         finally
         {
             await Log.CloseAndFlushAsync();
-        }
-
-        // Test the GetOAuthTokenAsync method
-        static async Task<string> GetToken(IServiceProvider serviceProvider, string clientId, string clientSecret)
-        {
-            // Get the logger from the service provider
-            var logger = serviceProvider.GetRequiredService<ILogger<OAuthToken>>();
-
-            // Create an instance of OAuthToken with the logger
-            OAuthToken oAuthToken = new OAuthToken(logger);
-            return await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
         }
 
         static void ConfigureServices(IServiceCollection services)
