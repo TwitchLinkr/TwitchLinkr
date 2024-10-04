@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-public class GrantFlowController : Controller
+internal class GrantFlowController : Controller
 {
     private static TaskCompletionSource<string> authorizationCodeTcs = default!;
 	private static TaskCompletionSource<string> authorizationScopeTcs = default!;

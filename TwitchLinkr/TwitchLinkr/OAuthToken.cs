@@ -8,11 +8,11 @@ using static System.Net.WebRequestMethods;
 
 namespace TwitchLinkr
 {
-	/// <summary>
-	/// Provides methods to obtain OAuth tokens for Twitch API requests.
-	/// <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow">Twitch OAuth Grant Flow documentation</see>
-	/// </summary>
-	public class OAuthToken
+    /// <summary>
+    /// Provides methods to obtain OAuth tokens for Twitch API requests.
+    /// <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow">Twitch OAuth Grant Flow documentation</see>
+    /// </summary>
+    public class OAuthToken
 	{
 		private readonly ILogger<OAuthToken> logger;
 
