@@ -8,7 +8,14 @@ namespace TwitchLinkr
 	/// </summary>
 	internal class EndpointCaller : IEndpointCaller
 	{
-
+		/// <summary>
+		/// Calls a GET endpoint with the specified parameters, OAuth token, and Client ID.
+		/// </summary>
+		/// <param name="endpoint">The URL of the endpoint to call.</param>
+		/// <param name="parameters">The parameters to include in the request URL.</param>
+		/// <param name="oauthToken">The OAuth token for authentication.</param>
+		/// <param name="clientId">The Client ID for authentication.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the response from the endpoint.</returns>
 		public static async Task<string> CallGetEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId)
 		{
 			// Create a new HttpRequestMessage object with the endpoint as the URL.
@@ -29,6 +36,15 @@ namespace TwitchLinkr
 			return await CallAPIAsync(request);
 		}
 
+		/// <summary>
+		/// Calls a POST endpoint with the specified parameters, OAuth token, Client ID, and content.
+		/// </summary>
+		/// <param name="endpoint">The URL of the endpoint to call.</param>
+		/// <param name="parameters">The parameters to include in the request URL.</param>
+		/// <param name="oauthToken">The OAuth token for authentication.</param>
+		/// <param name="clientId">The Client ID for authentication.</param>
+		/// <param name="content">The content to include in the request body.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the response from the endpoint.</returns>
 		public static async Task<string> CallPostEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId, string content)
 		{
 			// Create a new HttpRequestMessage object with the endpoint as the URL.
@@ -53,6 +69,11 @@ namespace TwitchLinkr
 			return await CallAPIAsync(request);
 		}
 
+		/// <summary>
+		/// Sends an HTTP request and returns the response.
+		/// </summary>
+		/// <param name="request">The HTTP request to send.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the response from the request.</returns>
 		public static async Task<string> CallAPIAsync(HttpRequestMessage request)
 		{
 			using (HttpClient client = new HttpClient())
@@ -64,11 +85,5 @@ namespace TwitchLinkr
 				return responseBody!;
 			}
 		}
-
-
-
-
-
-
 	}
 }

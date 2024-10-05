@@ -12,7 +12,7 @@ namespace TwitchLinkr.APIResponseModels
 	/// This Model is used to deserialize the JSON response from the Twitch API when requesting an OAuth token. And is meant for usage with all types of OAuth token requests.
 	/// </para>
 	/// </summary>
-	internal class OAuthTokenResponseModel
+	public class OAuthTokenResponseModel
 	{
 		/// <summary>
 		/// The access token used to authenticate requests to the Twitch API.
@@ -33,6 +33,11 @@ namespace TwitchLinkr.APIResponseModels
 		/// The scope of the access token.
 		/// </summary>
 		public string scope { get; set; } = default!;
+
+		/// <summary>
+		/// The state parameter that was passed in the request.
+		/// </summary>
+		public string state { get; set; } = default!;
 
 		/// <summary>
 		/// The number of seconds until the access token expires.
