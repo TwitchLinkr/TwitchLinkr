@@ -35,13 +35,13 @@ namespace TwitchLinkr.TwitchAPI
         /// </summary>
         /// <param name="clientId">The client ID of your Twitch application.</param>
         /// <param name="redirectUri">The URI to which the user will be redirected after authorization.</param>
-        /// <param name="scope">The scope of the access request.</param>
+        /// <param name="scopes">The scope of the access request.</param>
         /// <param name="state">A unique string to be passed back upon completion. Used to prevent CSRF attacks. If not provided, a new GUID will be generated.</param>
         /// <param name="force_verify">A boolean indicating whether to force the user to re-approve the app. Defaults to <c>false</c>.</param>
         /// <remarks>
         /// Token type: User Access Token
         /// </remarks>
-        public void GetImplicitGrantFlowOAuthTokenAsync(string clientId, string redirectUri, string scope, string state = "", bool force_verify = false)
+        public void GetImplicitGrantFlowOAuthTokenAsync(string clientId, string redirectUri, string scopes, string state = "", bool force_verify = false)
         {
             // Add a state parameter to prevent CSRF attacks
             if (string.IsNullOrEmpty(state))
@@ -54,7 +54,7 @@ namespace TwitchLinkr.TwitchAPI
             queryParams["client_id"] = clientId;
             queryParams["redirect_uri"] = redirectUri;
             queryParams["response_type"] = "token";
-            queryParams["scope"] = scope;
+            queryParams["scope"] = scopes;
             queryParams["state"] = state;
             queryParams["force_verify"] = force_verify.ToString().ToLower();
 
