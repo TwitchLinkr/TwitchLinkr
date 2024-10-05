@@ -51,22 +51,22 @@ internal class Program
             var serviceProvider = serviceCollection.BuildServiceProvider();
             
             // Get the logger
-            var logger = serviceProvider.GetRequiredService<ILogger<OAuthToken>>();
+            // var logger = serviceProvider.GetRequiredService<ILogger<OAuthToken>>();
             
             // Create a new OAuthToken instance
-            OAuthToken oAuthToken = new OAuthToken(logger);
+            // OAuthToken oAuthToken = new OAuthToken(logger);
             
             // Test OAuthToken methods
-            var token = await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
-            Console.WriteLine("OAuth Token: " + token);
+            // var token = await oAuthToken.GetClientCredentialsGrantFlowOAuthTokenAsync(clientId, clientSecret);
+            // Console.WriteLine("OAuth Token: " + token);
 
-            //oAuthToken.GetImplicitGrantFlowOAuthTokenAsync(clientId, "http://localhost:3000", "");
-
-            //var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
-            //Console.WriteLine("OAuth Token: " + token);
-
-            //var token = await oAuthToken.GetDeviceCodeGrantFlowOAuthTokenAsync(clientId, "");
-            //Console.WriteLine("OAuth Token: " + token.access_token);
+            // oAuthToken.GetImplicitGrantFlowOAuthTokenAsync(clientId, "http://localhost:3000", "");
+               
+            // var token = await oAuthToken.GetAuthorizationCodeGrantFlowOAuthTokenAsync(clientId, clientSecret, "http://localhost:3000", "", true);
+            // Console.WriteLine("OAuth Token: " + token);
+               
+            // var token = await oAuthToken.GetDeviceCodeGrantFlowOAuthTokenAsync(clientId, "");
+            // Console.WriteLine("OAuth Token: " + token.access_token);
         
             
             Log.Information("Application completed successfully");
