@@ -119,7 +119,7 @@ namespace TwitchLinkr.TwitchAPI
                 string responseBody = await EndpointCaller.CallAPIAsync(request);
                 var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(responseBody);
 
-                if (tokenData == null || string.IsNullOrEmpty(tokenData.access_token))
+                if (tokenData == null || string.IsNullOrEmpty(tokenData.Access_token))
                 {
                     logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", responseBody);
                     throw new InvalidOperationException("Failed to retrieve access token.");
@@ -208,7 +208,7 @@ namespace TwitchLinkr.TwitchAPI
                 string tokenResponseBody = await EndpointCaller.CallAPIAsync(tokenRequest);
                 var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(tokenResponseBody);
 
-                if (tokenData == null || string.IsNullOrEmpty(tokenData.access_token))
+                if (tokenData == null || string.IsNullOrEmpty(tokenData.Access_token))
                 {
                     logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", tokenResponseBody);
                     throw new InvalidOperationException("Failed to retrieve access token.");
@@ -307,7 +307,7 @@ namespace TwitchLinkr.TwitchAPI
                     string responseBody = await EndpointCaller.CallAPIAsync(request);
                     var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(responseBody);
 
-                    if (tokenData != null && !string.IsNullOrEmpty(tokenData.access_token))
+                    if (tokenData != null && !string.IsNullOrEmpty(tokenData.Access_token))
                     {
                         return tokenData;
                     }
