@@ -9,6 +9,18 @@
 		//-H 'Content-Type: application/json' \
 		//-d '{"broadcaster_id":"123456","title":"Streaming next Tuesday. Which time works best for you?","choices":[{"title":"9AM"},{"title":"10AM"},{"title":"7PM"},{"title":"8PM"},{"title":"9PM"}],"duration":300}'
 
+		public static async Task CreatePollAsync(string oAuthToken, string clientId)
+		{
+			string endpoint = "https://api.twitch.tv/helix/polls";
+			
+			var queryParams = new Dictionary<string, string> {
+				{ "client_id", clientId},
+				{ "scopes", scopes    }
+			};
+
+			var deviceRequestContent = new FormUrlEncodedContent(queryParams);
+			EndpointCaller.CallPostEndpointAsync(endpoint, [], oAuthToken, clientId, )
+		}
 
 
 
