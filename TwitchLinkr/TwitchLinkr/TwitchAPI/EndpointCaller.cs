@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 
 namespace TwitchLinkr.TwitchAPI
@@ -83,11 +84,12 @@ namespace TwitchLinkr.TwitchAPI
             request.Headers.Add("Client-ID", clientId);
             request.Headers.Add("Content-Type", "application/json");
 
-            // Add the content to the request.
-            request.Content = new StringContent(content, Encoding.UTF8, "application/json");
+			// Add the content to the request.
+			request.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
-            // If there are parameters, add them to the URL.
-            if (parameters != null)
+
+			// If there are parameters, add them to the URL.
+			if (parameters != null)
             {
                 var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
                 request.RequestUri = new Uri($"{request.RequestUri}?{query}");

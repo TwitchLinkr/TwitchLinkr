@@ -54,5 +54,18 @@ namespace TwitchLinkr.APIResponseModels
 		/// </summary>
 		public DateTime Expiration_time => Time_of_grant.AddSeconds(Expires_in);
 
+	} // TODO: Make internal at some point
+
+	internal class OAuthValidationModel
+	{
+
+		public string client_id { get; set; } = default!;
+		public string login { get; set; } = default!;
+		public string[] scopes { get; set; } = default!;
+		public string user_id { get; set; } = default!;
+		public int expires_in { get; set; }
+
+		public DateTime expire_date => DateTime.Now.AddSeconds(expires_in);
+
 	}
 }
