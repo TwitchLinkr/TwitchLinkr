@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using TwitchLinkr.APIResponseModels;
+using TwitchLinkr.TwitchAPI.APIResponseModels;
 using System.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

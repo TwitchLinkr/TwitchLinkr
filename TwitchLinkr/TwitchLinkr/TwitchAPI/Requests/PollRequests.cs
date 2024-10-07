@@ -1,11 +1,11 @@
-﻿using System.Text.Json;
-using TwitchLinkr.APIResponseModels;
+using System.Text.Json;
+using TwitchLinkr.TwitchAPI.APIResponseModels;
 
-namespace TwitchLinkr.TwitchAPI
+namespace TwitchLinkr.TwitchAPI.Requests;
+
+internal class PollRequests
 {
-	internal class TwitchAPIRequests
-	{
-		/// <summary>
+    		/// <summary>
 		/// Creates a poll on Twitch using the provided OAuth token and client ID.
 		/// </summary>
 		/// <remarks>
@@ -95,10 +95,4 @@ namespace TwitchLinkr.TwitchAPI
 			return JsonSerializer.Deserialize<PollResponseModel>(response)!;
 
 		}
-		
-		
-
-
-
-	}
 }
