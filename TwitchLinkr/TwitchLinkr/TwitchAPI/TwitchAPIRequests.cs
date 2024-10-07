@@ -24,7 +24,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="CreatePollResponseModel"/></returns>
 		public static async Task<CreatePollResponseModel> CreatePollAsync(string oAuthToken, string clientId, string broadcasterId, string title, string[] choices, int duration, int channelPointsPerVote = 500, bool enableChannelPointVoting = false, int bitsPerVote = 10, bool enableBitsVoting = false)
 		{
-			string endpoint = "https://api.twitch.tv/helix/polls";
+			const string endpoint = "https://api.twitch.tv/helix/polls";
 
 			// Format data content
 			var choiceArray = choices.Select(choice => new { title = choice }).ToArray();
@@ -39,20 +39,23 @@ namespace TwitchLinkr.TwitchAPI
 				bits_voting_enabled = enableBitsVoting,
 				bits_per_vote = bitsPerVote
 			};
-			string jsonContent = JsonSerializer.Serialize(pollData);
+			
+			// Serialize content
+			var jsonContent = JsonSerializer.Serialize(pollData);
 
 			// Call the endpoint
 			var response = await EndpointCaller.CallPostEndpointAsync(endpoint, [], oAuthToken, clientId, jsonContent);
 
+			// Deserialize the response
 			var pollResponse = JsonSerializer.Deserialize<CreatePollResponseModel>(response);
 
-			// Return the poll ID. Unlikely to be null, since the EndpointCaller will throw an exception if the call is unsuccessful.
+			// Return the response. Unlikely to be null, since the EndpointCaller will throw an exception if the call is unsuccessful.
 			return pollResponse!;
 		}
 
 		public static async Task EndPollAsync(string oAuthToken, string clientId, string broadcasterId, string pollId, bool archive = false)
 		{
-			string endpoint = $"https://api.twitch.tv/helix/polls";
+			const string endpoint = $"https://api.twitch.tv/helix/polls";
 
 			var parameters = new Dictionary<string, string>
 			{
@@ -64,6 +67,10 @@ namespace TwitchLinkr.TwitchAPI
 			// Call the endpoint
 			await EndpointCaller.CallPatchEndpointAsync(endpoint, parameters, oAuthToken, clientId);
 		}
+		
+		
+		
+		
 
 
 
