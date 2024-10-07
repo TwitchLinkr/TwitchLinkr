@@ -52,23 +52,49 @@ namespace TwitchLinkr.TwitchAPI
 			// Return the response. Unlikely to be null, since the EndpointCaller will throw an exception if the call is unsuccessful.
 			return pollResponse!;
 		}
-
 		public static async Task EndPollAsync(string oAuthToken, string clientId, string broadcasterId, string pollId, bool archive = false)
 		{
-			const string endpoint = $"https://api.twitch.tv/helix/polls";
+			const string endpoint = "https://api.twitch.tv/helix/polls";
 
-			var parameters = new Dictionary<string, string>
+			var parameters = new KeyValuePair<string, string>[]
 			{
-				{ "broadcaster_id", broadcasterId },
-				{ "id", pollId },
-				{ "status", archive ? "ARCHIVED" : "COMPLETED" }
+				new ("broadcaster_id", broadcasterId),
+				new ("id", pollId),
+				new ("status", archive ? "ARCHIVED" : "COMPLETED")
 			};
 
 			// Call the endpoint
-			await EndpointCaller.CallPatchEndpointAsync(endpoint, parameters, oAuthToken, clientId);
+			await EndpointCaller.CallPatchEndpointAsync(endpoint, oAuthToken, clientId, parameters);
 		}
-		
-		
+		public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId)
+		{
+			var pollResponse = await GetPollBase(oAuthToken, clientId, new KeyValuePair<string, string>("broadcaster_id", broadcasterId));
+			return pollResponse;
+		}
+		public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, params string[] pollIds)
+		{
+
+			var parameters = new KeyValuePair<string, string>[]
+			{
+				new ("broadcaster_id", broadcasterId),
+			};
+
+			// Add IDs to parameters
+			parameters = parameters.Concat(pollIds.Select(id => new KeyValuePair<string, string>("id", id))).ToArray();
+
+			return await GetPollBase(oAuthToken, clientId, parameters);
+		}
+		private static async Task<PollResponseModel> GetPollBase(string oAuthToken, string clientId, params KeyValuePair<string, string>[] parameters)
+		{
+			const string endpoint = "https://api.twitch.tv/helix/polls";
+			
+			// Call the endpoint
+			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, parameters);
+			
+			// Deserialize the response
+			return JsonSerializer.Deserialize<PollResponseModel>(response)!;
+
+		}
 		
 		
 

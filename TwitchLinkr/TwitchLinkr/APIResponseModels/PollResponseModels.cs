@@ -14,7 +14,7 @@ namespace TwitchLinkr.APIResponseModels
 	internal class PollResponseModel
 	{
 		public Poll[] Data { get; set; } = default!;
-		public string Pagination { get; set; } = default!;
+		public Dictionary<string, string> Pagination { get; set; } = default!;
 	}
 
 	internal class Poll

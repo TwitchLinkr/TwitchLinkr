@@ -17,11 +17,11 @@ namespace TwitchLinkr.TwitchAPI
         /// <param name="oauthToken">The OAuth token for authentication.</param>
         /// <param name="clientId">The Client ID for authentication.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains the response from the endpoint.</returns>
-        public static async Task<string> CallGetEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId)
+        public static async Task<string> CallGetEndpointAsync(string endpoint, string oauthToken, string clientId, params KeyValuePair<string, string>[] parameters)
         {
             // Create a new HttpRequestMessage object with the endpoint as the URL.
             var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-
+            
             // Add the OAuth token and Client ID to the request headers.
             request.Headers.Add("Authorization", $"Bearer {oauthToken}");
             request.Headers.Add("Client-ID", clientId);
@@ -45,7 +45,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// <param name="oauthToken">The OAuth token for authentication.</param>
 		/// <param name="clientId">The Client ID for authentication.</param>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the response from the endpoint.</returns>
-		public static async Task<string> CallPatchEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId)
+		public static async Task<string> CallPatchEndpointAsync(string endpoint, string oauthToken, string clientId, params KeyValuePair<string, string>[] parameters)
 		{
 			// Create a new HttpRequestMessage object with the endpoint as the URL.
 			var request = new HttpRequestMessage(HttpMethod.Patch, endpoint);
