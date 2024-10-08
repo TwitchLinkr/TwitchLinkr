@@ -66,6 +66,17 @@ namespace TwitchLinkr.TwitchAPI
 		/// <summary>
 		/// Calls a POST endpoint with the specified parameters, OAuth token, Client ID, and content.
 		/// </summary>
+		/// <remarks>
+		/// Note: that you must serialize the content before calling this method.
+		/// <code>
+		/// var content = new {
+		///     id = "12345",
+		///     name = "Example"
+		/// }
+		/// var serializedContent = JsonSerializer.Serialize(pollData);
+		/// 
+		/// </code>
+		/// </remarks>
 		/// <param name="endpoint">The URL of the endpoint to call.</param>
 		/// <param name="parameters">The parameters to include in the request URL.</param>
 		/// <param name="oauthToken">The OAuth token for authentication.</param>
