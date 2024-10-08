@@ -41,8 +41,5 @@ namespace TwitchLinkr.TwitchAPI
 			return await PollRequests.GetPoll(oAuthToken, clientId, broadcasterId, pollIds);
 		}
 		
-
-
-
 	}
 }
