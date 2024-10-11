@@ -124,6 +124,25 @@ namespace TwitchLinkr.TwitchAPI
             return await CallAPIAsync(request);
         }
 
+
+		public static async Task<string> CallDeleteEndpointAsync(string endpoint, string oauthToken, string clientId, params KeyValuePair<string, string>[] parameters)
+		{
+			var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
+
+			// Add the OAuth token and Client ID to the request headers.
+			request.Headers.Add("Authorization", $"Bearer {oauthToken}");
+			request.Headers.Add("Client-ID", clientId);
+
+			// If there are parameters, add them to the URL.
+			if (parameters != null)
+			{
+				var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+				request.RequestUri = new Uri($"{request.RequestUri}?{query}");
+			}
+
+			return await CallAPIAsync(request);
+		}
+
         /// <summary>
         /// Sends an HTTP request and returns the response.
         /// </summary>
