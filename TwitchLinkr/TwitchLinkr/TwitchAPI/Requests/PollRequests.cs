@@ -3,7 +3,7 @@ using TwitchLinkr.TwitchAPI.APIResponseModels;
 
 namespace TwitchLinkr.TwitchAPI.Requests;
 
-internal class PollRequests
+internal static class PollRequests
 {
 	/// <summary>
 	/// Creates a poll on Twitch using the provided OAuth token and client ID.
