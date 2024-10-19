@@ -35,7 +35,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 
 			var jsonContent = JsonSerializer.Serialize(raidData);
 
-			var response = await EndpointCaller.CallPostEndpointAsync(endpoint, [], oAuthToken, clientId, jsonContent);
+			var response = await EndpointCaller.CallPostEndpointAsync(endpoint, oAuthToken, clientId, jsonContent);
 
 			var raidResponse = JsonSerializer.Deserialize<RaidResponseModel>(response);
 

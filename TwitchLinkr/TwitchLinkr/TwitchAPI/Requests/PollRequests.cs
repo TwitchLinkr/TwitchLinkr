@@ -44,7 +44,7 @@ internal static class PollRequests
 		var jsonContent = JsonSerializer.Serialize(pollData);
 
 		// Call the endpoint
-		var response = await EndpointCaller.CallPostEndpointAsync(endpoint, [], oAuthToken, clientId, jsonContent);
+		var response = await EndpointCaller.CallPostEndpointAsync(endpoint, oAuthToken, clientId, jsonContent);
 
 		// Deserialize the response
 		var pollResponse = JsonSerializer.Deserialize<CreatePollResponseModel>(response);

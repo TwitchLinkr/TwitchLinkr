@@ -1,4 +1,6 @@
 ﻿using System.Text;
+using System.Net;
+using TwitchLinkr.TwitchAPI.Exceptions;
 
 namespace TwitchLinkr.TwitchAPI
 {
@@ -41,7 +43,7 @@ namespace TwitchLinkr.TwitchAPI
             request.Headers.Add("Client-ID", clientId);
 
             // If there are parameters, add them to the URL.
-            if (parameters != null)
+            if (parameters != null && parameters.Length > 0)
             {
                 var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
                 request.RequestUri = new Uri($"{request.RequestUri}?{query}");
@@ -69,7 +71,7 @@ namespace TwitchLinkr.TwitchAPI
 			request.Headers.Add("Client-ID", clientId);
 
 			// If there are parameters, add them to the URL.
-			if (parameters != null)
+			if (parameters != null && parameters.Length > 0)
 			{
 				var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
 				request.RequestUri = new Uri($"{request.RequestUri}?{query}");
@@ -99,7 +101,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// <param name="clientId">The Client ID for authentication.</param>
 		/// <param name="content">The content to include in the request body.</param>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the response from the endpoint.</returns>
-		public static async Task<string> CallPostEndpointAsync(string endpoint, Dictionary<string, string> parameters, string oauthToken, string clientId, string content)
+		public static async Task<string> CallPostEndpointAsync(string endpoint, string oauthToken, string clientId, string content, params KeyValuePair<string, string>[] parameters)
         {
             // Create a new HttpRequestMessage object with the endpoint as the URL.
             var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
@@ -114,7 +116,7 @@ namespace TwitchLinkr.TwitchAPI
 
 
 			// If there are parameters, add them to the URL.
-			if (parameters != null)
+			if (parameters != null && parameters.Length > 0)
             {
                 var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
                 request.RequestUri = new Uri($"{request.RequestUri}?{query}");
@@ -134,7 +136,7 @@ namespace TwitchLinkr.TwitchAPI
 			request.Headers.Add("Client-ID", clientId);
 
 			// If there are parameters, add them to the URL.
-			if (parameters != null)
+			if (parameters != null && parameters.Length > 0)
 			{
 				var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
 				request.RequestUri = new Uri($"{request.RequestUri}?{query}");
@@ -151,10 +153,30 @@ namespace TwitchLinkr.TwitchAPI
         public static async Task<string> CallAPIAsync(HttpRequestMessage request)
         {
 			using HttpResponseMessage response = await Client.SendAsync(request);
-			response.EnsureSuccessStatusCode();
+			
+			if (response.IsSuccessStatusCode)
+			{
+				string responseBody = await response.Content.ReadAsStringAsync();
+				return responseBody!;
+			}
 
-			string responseBody = await response.Content.ReadAsStringAsync();
-			return responseBody!;
+			switch (response.StatusCode)
+			{
+				case HttpStatusCode.BadRequest:
+					throw new BadRequestException(response.ReasonPhrase!);
+				case HttpStatusCode.Unauthorized:
+					throw new UnauthorizedException(response.ReasonPhrase!);
+				case HttpStatusCode.NotFound:
+					throw new NotFoundException(response.ReasonPhrase!);
+				case HttpStatusCode.Conflict:
+					throw new ConflictException(response.ReasonPhrase!);
+				case HttpStatusCode.TooManyRequests:
+					throw new TooManyRequestsException(response.ReasonPhrase!);
+				default:
+					throw new HttpRequestException(response.StatusCode + " - " + response.ReasonPhrase);
+			}
+			
+			
 		}
     }
 }
