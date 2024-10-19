@@ -10,13 +10,13 @@ namespace TwitchLinkr.TwitchAPI.Requests
 {
 	/// <summary>  
 	/// Provides methods to create and cancel raids on Twitch.  
-	/// Requires the channel:manage:raids scope.  
+	/// Requires a User Access token with the channel:manage:raids scope.  
 	/// </summary>  
 	internal static class RaidRequests
 	{
 		/// <summary>  
 		/// Creates a raid from one broadcaster to another.  
-		/// Requires the channel:manage:raids scope.  
+		/// Requires a User Access token with the channel:manage:raids scope. 
 		/// </summary>  
 		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
 		/// <param name="clientId">The Client ID for authentication.</param>  
@@ -44,7 +44,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 
 		/// <summary>  
 		/// Cancels an ongoing raid for a broadcaster.  
-		/// Requires the channel:manage:raids scope.  
+		/// Requires a User Access token with the channel:manage:raids scope.  
 		/// </summary>  
 		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
 		/// <param name="clientId">The Client ID for authentication.</param>  
