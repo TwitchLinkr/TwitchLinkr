@@ -10,8 +10,6 @@ namespace TwitchLinkr.TwitchAPI.Requests
 {
 	/// <summary>  
 	/// Provides methods to interact with Twitch user data.  
-	/// Requires an App Access Token or User Access Token.  
-	/// To include the verified email of the account linked to the token, the user:read:email scope is required.  
 	/// </summary>  
 	internal static class UserRequests
 	{
@@ -56,7 +54,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 
 		/// <summary>  
 		/// Updates the description of the authenticated user.  
-		/// Requires an App Access Token or User Access Token.  
+		/// Requires a User Access Token with scope user:edit.
 		/// To include the verified email of the account linked to the token, the user:read:email scope is required.
 		/// </summary>  
 		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
