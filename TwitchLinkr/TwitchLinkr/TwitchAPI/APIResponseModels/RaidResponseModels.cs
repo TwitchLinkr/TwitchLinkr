@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TwitchLinkr.TwitchAPI.APIResponseModels
 {
-	internal class RaidResponseModel
+	internal class RaidResponseModels
 	{
 		public RaidResponseDataContent[] Data { get; set; } = default!;
 	}

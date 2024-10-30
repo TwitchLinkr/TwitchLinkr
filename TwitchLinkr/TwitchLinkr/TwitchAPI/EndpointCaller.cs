@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Net;
 using TwitchLinkr.TwitchAPI.Exceptions;
+using Microsoft.AspNetCore.Http;
 
 namespace TwitchLinkr.TwitchAPI
 {
@@ -24,7 +25,20 @@ namespace TwitchLinkr.TwitchAPI
 			}
 		}
 
+		public static async Task<string> CallPutEndpointAsync(string endpoint, string oauthToken, string clientId, params KeyValuePair<string, string>[] parameters)
+		{
+			// Create a new HttpRequestMessage object with the endpoint as the URL.
+			var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
 
+			// Add the OAuth token and Client ID to the request headers.
+			request.Headers.Add("Authorization", $"Bearer {oauthToken}");
+			request.Headers.Add("Client-ID", clientId);
+
+			request.RequestUri = AddParametersToUri(request.RequestUri!, parameters);
+
+			// Send the request and return the response.
+			return await CallAPIAsync(request);
+		}
 		/// <summary>
 		/// Calls a GET endpoint with the specified parameters, OAuth token, and Client ID.
 		/// </summary>
@@ -42,17 +56,11 @@ namespace TwitchLinkr.TwitchAPI
             request.Headers.Add("Authorization", $"Bearer {oauthToken}");
             request.Headers.Add("Client-ID", clientId);
 
-            // If there are parameters, add them to the URL.
-            if (parameters != null && parameters.Length > 0)
-            {
-                var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-                request.RequestUri = new Uri($"{request.RequestUri}?{query}");
-            }
+			request.RequestUri = AddParametersToUri(request.RequestUri!, parameters);
 
-            // Send the request and return the response.
-            return await CallAPIAsync(request);
+			// Send the request and return the response.
+			return await CallAPIAsync(request);
         }
-
 		/// <summary>
 		/// Calls a PATCH endpoint with the specified parameters, OAuth token, and Client ID.
 		/// </summary>
@@ -70,17 +78,11 @@ namespace TwitchLinkr.TwitchAPI
 			request.Headers.Add("Authorization", $"Bearer {oauthToken}");
 			request.Headers.Add("Client-ID", clientId);
 
-			// If there are parameters, add them to the URL.
-			if (parameters != null && parameters.Length > 0)
-			{
-				var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-				request.RequestUri = new Uri($"{request.RequestUri}?{query}");
-			}
+			request.RequestUri = AddParametersToUri(request.RequestUri!, parameters);
 
 			// Send the request and return the response.
 			return await CallAPIAsync(request);
 		}
-
 		/// <summary>
 		/// Calls a POST endpoint with the specified parameters, OAuth token, Client ID, and content.
 		/// </summary>
@@ -115,18 +117,11 @@ namespace TwitchLinkr.TwitchAPI
 			request.Content = new StringContent(content, Encoding.UTF8, "application/json");
 
 
-			// If there are parameters, add them to the URL.
-			if (parameters != null && parameters.Length > 0)
-            {
-                var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-                request.RequestUri = new Uri($"{request.RequestUri}?{query}");
-            }
+			request.RequestUri = AddParametersToUri(request.RequestUri!, parameters);
 
-            // Send the request and return the response.
-            return await CallAPIAsync(request);
+			// Send the request and return the response.
+			return await CallAPIAsync(request);
         }
-
-
 		public static async Task<string> CallDeleteEndpointAsync(string endpoint, string oauthToken, string clientId, params KeyValuePair<string, string>[] parameters)
 		{
 			var request = new HttpRequestMessage(HttpMethod.Delete, endpoint);
@@ -135,14 +130,18 @@ namespace TwitchLinkr.TwitchAPI
 			request.Headers.Add("Authorization", $"Bearer {oauthToken}");
 			request.Headers.Add("Client-ID", clientId);
 
-			// If there are parameters, add them to the URL.
-			if (parameters != null && parameters.Length > 0)
-			{
-				var query = string.Join("&", parameters.Select(kvp => $"{kvp.Key}={kvp.Value}"));
-				request.RequestUri = new Uri($"{request.RequestUri}?{query}");
-			}
+			request.RequestUri = AddParametersToUri(request.RequestUri!, parameters);
 
 			return await CallAPIAsync(request);
+		}
+
+		private static Uri AddParametersToUri(Uri requestUri, KeyValuePair<string, string>[] parameters)
+		{
+			// If there are parameters, add them to the URL.
+			if (parameters == null || parameters.Length == 0) return requestUri;
+
+			var query = string.Join("&", parameters.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value)}"));
+			return new Uri($"{requestUri}?{query}");
 		}
 
         /// <summary>

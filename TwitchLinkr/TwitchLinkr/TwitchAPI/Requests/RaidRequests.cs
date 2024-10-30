@@ -23,7 +23,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		/// <param name="broadcasterId">The ID of the broadcaster initiating the raid.</param>  
 		/// <param name="targetBroadcasterId">The ID of the target broadcaster to raid.</param>  
 		/// <returns>A task that represents the asynchronous operation. The task result contains the raid response model.</returns>  
-		public static async Task<RaidResponseModel> CreateRaidAsync(string oAuthToken, string clientId, string broadcasterId, string targetBroadcasterId)
+		public static async Task<RaidResponseModels> CreateRaidAsync(string oAuthToken, string clientId, string broadcasterId, string targetBroadcasterId)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/raids";
 
@@ -37,7 +37,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 
 			var response = await EndpointCaller.CallPostEndpointAsync(endpoint, oAuthToken, clientId, jsonContent);
 
-			var raidResponse = JsonSerializer.Deserialize<RaidResponseModel>(response);
+			var raidResponse = JsonSerializer.Deserialize<RaidResponseModels>(response);
 
 			return raidResponse!;
 		}
