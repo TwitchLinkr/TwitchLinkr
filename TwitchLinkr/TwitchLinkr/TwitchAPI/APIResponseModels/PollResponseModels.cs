@@ -8,7 +8,7 @@ internal class CreatePollResponseModel
 internal class PollResponseModel
 {
 	public Poll[] Data { get; set; } = default!;
-	public Dictionary<string, string> Pagination { get; set; } = default!;
+	public Pagination Pagination { get; set; } = default!;
 }
 
 internal class Poll
