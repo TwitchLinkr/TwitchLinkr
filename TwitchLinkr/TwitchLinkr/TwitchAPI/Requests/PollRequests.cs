@@ -89,21 +89,31 @@ internal static class PollRequests
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster whose poll to retrieve.</param>
-	/// <param name="first">The number of polls to retrieve. Maximum of 20 polls at a time.</param>
+	/// <param name="first">The number of polls to retrieve. Maximum is 20, minimum is 1.</param>
 	/// <param name="cursor">The cursor for the next page of results.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
 	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, int first = 20, string cursor = "")
 	{
+		// Ensure the first value is within the valid range
+		if (first < 1 || first > 20)
+		{
+			throw new ArgumentOutOfRangeException(nameof(first), "The value of 'first' must be between 1 and 20.");
+		}
+
+
+		// Create parameters
 		List<KeyValuePair<string, string>> parameters =
 		[
 			new ("broadcaster_id", broadcasterId),
 			new ("first", first.ToString())
 		];
 
+		// Add cursor to parameters
 		if (string.IsNullOrEmpty(cursor))
 		{
 			parameters.Add(new("after", cursor));
 		}
+		
 		var pollResponse = await GetPollBase(oAuthToken, clientId, [.. parameters]);
 		return pollResponse;
 	}
