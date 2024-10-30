@@ -8,6 +8,12 @@ namespace TwitchLinkr.TwitchAPI.APIResponseModels
 {
 	internal class Pagination
 	{
-		public string Curser { get; set; } = default!;
+		public string Cursor { get; set; } = default!;
+	}
+
+	internal enum PageDirection
+	{
+		Before,
+		After
 	}
 }

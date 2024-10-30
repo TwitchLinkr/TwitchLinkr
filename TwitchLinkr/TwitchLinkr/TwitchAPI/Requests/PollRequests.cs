@@ -89,10 +89,22 @@ internal static class PollRequests
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster whose poll to retrieve.</param>
+	/// <param name="first">The number of polls to retrieve. Maximum of 20 polls at a time.</param>
+	/// <param name="cursor">The cursor for the next page of results.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
-	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId)
+	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, int first = 20, string cursor = "")
 	{
-		var pollResponse = await GetPollBase(oAuthToken, clientId, new KeyValuePair<string, string>("broadcaster_id", broadcasterId));
+		List<KeyValuePair<string, string>> parameters =
+		[
+			new ("broadcaster_id", broadcasterId),
+			new ("first", first.ToString())
+		];
+
+		if (string.IsNullOrEmpty(cursor))
+		{
+			parameters.Add(new("after", cursor));
+		}
+		var pollResponse = await GetPollBase(oAuthToken, clientId, [.. parameters]);
 		return pollResponse;
 	}
 
@@ -105,14 +117,23 @@ internal static class PollRequests
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster whose polls to retrieve.</param>
-	/// <param name="pollIds">An array of poll IDs to retrieve.</param>
+	/// <param name="pollIds">An array of poll IDs to retrieve. Maximum of 20 Ids at a time</param>
+	/// <param name="first">The number of polls to retrieve. Maximum of 20 polls at a time.</param>
+	/// <param name="cursor">The cursor for the next page of results.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
-	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, params string[] pollIds)
+	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, string[] pollIds, int first = 20, string cursor = "")
 	{
 		var parameters = new KeyValuePair<string, string>[]
 		{
 				new ("broadcaster_id", broadcasterId),
+				new ("first", first.ToString())
 		};
+
+		// Add cursor to parameters
+		if (string.IsNullOrEmpty(cursor))
+		{
+			parameters = parameters.Concat([new KeyValuePair<string, string>("after", cursor)]).ToArray();
+		}
 
 		// Add IDs to parameters
 		parameters = parameters.Concat(pollIds.Select(id => new KeyValuePair<string, string>("id", id))).ToArray();
