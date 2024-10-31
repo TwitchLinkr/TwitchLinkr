@@ -24,14 +24,17 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		public static async Task<EmotesResponseModel> GetChannelEmotesAsync(string oAuthToken, string clientId, string broadcasterId)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/chat/emotes";
-
+			
+			// Format the parameters
 			var parameters = new List<KeyValuePair<string, string>>
-				{
-					new KeyValuePair<string, string>("broadcaster_id", broadcasterId)
-				};
+			{
+				new KeyValuePair<string, string>("broadcaster_id", broadcasterId)
+			};
 
+			// Call the endpoint
 			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, parameters.ToArray());
 
+			// Deserialize the response
 			var data = JsonSerializer.Deserialize<EmotesResponseModel>(response);
 
 			return data!;
@@ -48,8 +51,10 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		{
 			const string endpoint = "https://api.twitch.tv/helix/chat/emotes/global";
 
+			// Call the endpoint
 			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId);
 
+			// Deserialize the response
 			var data = JsonSerializer.Deserialize<EmotesResponseModel>(response);
 
 			return data!;
@@ -67,15 +72,17 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		{
 			const string endpoint = "https://api.twitch.tv/helix/chat/emotes/set";
 
+			// Format the parameters
 			var parameters = new List<KeyValuePair<string, string>>();
-
 			foreach (var setId in EmoteSetIds)
 			{
 				parameters.Add(new KeyValuePair<string, string>("emote_set_id", setId));
 			}
 
+			// Call the endpoint
 			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, parameters.ToArray());
 
+			// Deserialize the response
 			var data = JsonSerializer.Deserialize<EmotesResponseModel>(response);
 
 			return data!;
