@@ -15,8 +15,8 @@ namespace TwitchLinkr.TwitchAPI.Requests
 	internal static class RaidRequests
 	{
 		/// <summary>  
-		/// Creates a raid from one broadcaster to another.  
-		/// Requires a User Access token with the channel:manage:raids scope. 
+		/// Creates a raid from one broadcaster to another.  <br/>
+		/// Requires a User Access token with the <c>channel:manage:raids</c> scope. 
 		/// </summary>  
 		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
 		/// <param name="clientId">The Client ID for authentication.</param>  
@@ -43,8 +43,8 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		}
 
 		/// <summary>  
-		/// Cancels an ongoing raid for a broadcaster.  
-		/// Requires a User Access token with the channel:manage:raids scope.  
+		/// Cancels an ongoing raid for a broadcaster.		<br/>
+		/// Requires a User Access token with the <c>channel:manage:raids</c> scope.  
 		/// </summary>  
 		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
 		/// <param name="clientId">The Client ID for authentication.</param>  

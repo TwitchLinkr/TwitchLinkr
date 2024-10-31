@@ -7,22 +7,22 @@ using System.Threading.Tasks;
 using TwitchLinkr.TwitchAPI.APIResponseModels;
 
 namespace TwitchLinkr.TwitchAPI.Requests
-{
-	/// <summary>  
-	/// Provides methods to interact with Twitch user data.  
-	/// </summary>  
+{ 
+	/// <summary>
+	/// Provides methods to interact with Twitch user data.<br/>
+	/// </summary>
 	internal static class UserRequests
 	{
-		/// <summary>  
-		/// Gets user information for specified logins and/or IDs.  
-		/// Requires an App Access Token or User Access Token.  
-		/// To include the verified email of the account linked to the token, the user:read:email scope is required.  
-		/// </summary>  
-		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
-		/// <param name="clientId">The Client ID for authentication.</param>  
-		/// <param name="logins">An array of user logins to fetch information for.</param>  
-		/// <param name="ids">An array of user IDs to fetch information for.</param>  
-		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>  
+		/// <summary>
+		/// Gets user information for specified logins and/or IDs.<br/>
+		/// Requires an App Access Token or User Access Token.<br/>
+		/// To include the verified email of the account linked to the token, the <c>user:read:email</c> scope is required.
+		/// </summary>
+		/// <param name="oAuthToken">The OAuth token for authentication.</param>
+		/// <param name="clientId">The Client ID for authentication.</param>
+		/// <param name="logins">An array of user logins to fetch information for.</param>
+		/// <param name="ids">An array of user IDs to fetch information for.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>
 		public static async Task<UserResponseModel> GetUsers(string oAuthToken, string clientId, string[] logins, string[] ids)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/users";
@@ -52,15 +52,15 @@ namespace TwitchLinkr.TwitchAPI.Requests
 			return data!;
 		}
 
-		/// <summary>  
-		/// Updates the description of the authenticated user.  
-		/// Requires a User Access Token with scope user:edit.
-		/// To include the verified email of the account linked to the token, the user:read:email scope is required.
-		/// </summary>  
-		/// <param name="oAuthToken">The OAuth token for authentication.</param>  
-		/// <param name="clientId">The Client ID for authentication.</param>  
-		/// <param name="descr">The new description for the user.</param>  
-		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>  
+		/// <summary>
+		/// Updates the description of the authenticated user.<br/>
+		/// Requires a User Access Token with scope <c>user:edit</c>.<br/>
+		/// To include the verified email of the account linked to the token, the <c>user:read:email</c> scope is required.
+		/// </summary>
+		/// <param name="oAuthToken">The OAuth token for authentication.</param>
+		/// <param name="clientId">The Client ID for authentication.</param>
+		/// <param name="descr">The new description for the user.</param>
+		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>
 		public static async Task<UserResponseModel> UpdateUser(string oAuthToken, string clientId, string descr)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/users";

@@ -6,11 +6,9 @@ namespace TwitchLinkr.TwitchAPI.Requests;
 internal static class PollRequests
 {
 	/// <summary>
-	/// Creates a poll on Twitch using the provided OAuth token and client ID.
-	/// </summary>
-	/// <remarks>
+	/// Creates a poll on Twitch using the provided OAuth token and client ID. <br/>
 	/// Requires a user access token with scope channel:manage:polls.
-	/// </remarks>
+	/// </summary>
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster creating the poll.</param>
@@ -54,11 +52,9 @@ internal static class PollRequests
 	}
 
 	/// <summary>
-	/// Ends a poll on Twitch using the provided OAuth token and client ID.
-	/// </summary>
-	/// <remarks>
+	/// Ends a poll on Twitch using the provided OAuth token and client ID.	<br/>
 	/// Requires a user access token with scope channel:manage:polls.
-	/// </remarks>
+	/// </summary>
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster ending the poll.</param>
@@ -81,11 +77,9 @@ internal static class PollRequests
 	}
 
 	/// <summary>
-	/// Gets the current poll for a broadcaster using the provided OAuth token and client ID.
-	/// </summary>
-	/// <remarks>
+	/// Gets the current poll for a broadcaster using the provided OAuth token and client ID.	<br/>
 	/// Requires a user access token with scope channel:manage:polls or channel:read:polls if you're only reading polls.
-	/// </remarks>
+	/// </summary>
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster whose poll to retrieve.</param>
@@ -119,11 +113,9 @@ internal static class PollRequests
 	}
 
 	/// <summary>
-	/// Gets specific polls for a broadcaster using the provided OAuth token and client ID.
-	/// </summary>
-	/// <remarks>
+	/// Gets specific polls for a broadcaster using the provided OAuth token and client ID.	<br/>
 	/// Requires a user access token with scope channel:manage:polls or channel:read:polls if you're only reading polls.
-	/// </remarks>
+	/// </summary>
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
 	/// <param name="broadcasterId">The ID of the broadcaster whose polls to retrieve.</param>
