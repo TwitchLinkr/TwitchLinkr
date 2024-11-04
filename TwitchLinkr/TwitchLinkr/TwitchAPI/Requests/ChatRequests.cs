@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using TwitchLinkr.TwitchAPI.APIResponseModels;
 
@@ -54,8 +55,39 @@ namespace TwitchLinkr.TwitchAPI.Requests
 
 			return data!;
 		}
-	
 
+
+		/// <summary>
+		/// Gets the chat settings for a broadcaster's chat.<br/>
+		/// Requires an app access token or user access token.
+		/// <para>The moderatorId field is required only if you want to include the <c>non_moderator_chat_delay</c> and <c>non_moderator_chat_delay_duration</c> settings in the response. <br/>
+		/// If you specify this field, this ID must match the user ID in the user access token.</para>
+		/// <summary/>
+		/// <param name="oAuthToken">The OAuth token for authentication.</param>
+		/// <param name="clientId">The Client ID for authentication.</param>
+		/// <param name="broadcasterId">The ID of the broadcaster whose chat settings are being fetched.</param>
+		/// <param name="moderatorId">The ID of the broadcaster or one of the broadcasters moderators</param>
+		/// <returns>The response model containing the requested chat settings.</returns>
+		public static async Task<ChatSettingsResponseModel> GetChatSettingsAsync(string oAuthToken, string clientId, string broadcasterId, string moderatorId = "")
+		{
+			const string endpoint = "https://api.twitch.tv/helix/chat/settings";
+
+			var chatParams = new List<KeyValuePair<string, string>>
+			{
+					new KeyValuePair<string, string>("broadcaster_id", broadcasterId)
+			};
+
+			if (!string.IsNullOrEmpty(moderatorId))
+			{
+				chatParams.Add(new KeyValuePair<string, string>("moderator_id", moderatorId));
+			}
+
+			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, chatParams.ToArray());
+
+			var data = JsonSerializer.Deserialize<ChatSettingsResponseModel>(response);
+
+			return data!;
+		}
 	
 	}
 }
