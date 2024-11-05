@@ -14,9 +14,15 @@ namespace TwitchLinkr
 {
 	public class AuthorizationUserLinker
 	{
-		// Static variables7
-		public static bool TestModeEnabled { get; set; } = false;
 
+		// TODO: fully implement test mode
+		public bool TestModeEnabled { get; set; } = false;
+		private string BaseUri { 
+			get
+			{
+				return TestModeEnabled ? "http://localhost8080/" : "https://api.twitch.tv/";
+			}
+		}
 
 		// Local variables
 		private string OAuthToken { get; set; }
@@ -35,22 +41,24 @@ namespace TwitchLinkr
 			}
 		}
 
-		private AuthorizationUserLinker(string oAuthToken, string refreshToken, string clientId, string clientSecret)
+		private AuthorizationUserLinker(string oAuthToken, string refreshToken, string clientId, string clientSecret, bool testMode = false)
 		{
 			this.OAuthToken = oAuthToken;
 			this.RefreshToken = refreshToken;
 			this.ClientId = clientId;
 			this.ClientSecret = clientSecret;
 			this.IsAuthorizedInternal = true;
+			this.TestModeEnabled = testMode;
 		}
 
-		private AuthorizationUserLinker(string clientId, string clientSecret)
+		private AuthorizationUserLinker(string clientId, string clientSecret, bool testMode = false)
 		{
 			this.ClientId = clientId;
 			this.ClientSecret = clientSecret;
 			this.OAuthToken = "";
 			this.RefreshToken = "";
 			this.IsAuthorizedInternal = false;
+			this.TestModeEnabled = testMode;
 		}
 
 		public static async Task<AuthorizationUserLinker> CreateAsync(string clientId, string clientSecret, string redirectUri, string scopes, bool force_verify = false)
@@ -73,7 +81,7 @@ namespace TwitchLinkr
 
 		public async Task<bool> AuthorizeAsync(string redirectUri, string scopes, bool force_verify = false)
 		{
-			OAuthTokenResponseModel AuthResponse = await new OAuthToken().GetAuthorizationCodeGrantFlowOAuthTokenAsync(this.ClientId, this.ClientSecret, redirectUri, scopes, force_verify);
+			OAuthTokenResponseModel AuthResponse = await Authorizer.GetAuthorizationCodeGrantFlowOAuthTokenAsync(this.ClientId, this.ClientSecret, redirectUri, scopes, force_verify);
 
 			this.OAuthToken = AuthResponse.Access_token;
 			this.RefreshToken = AuthResponse.Refresh_token;
@@ -84,7 +92,7 @@ namespace TwitchLinkr
 
 		public async Task<bool> RefreshTokenAsync()
 		{
-			var response = await new OAuthToken().RefreshOAuthTokenAsync(this.ClientId, this.ClientSecret, this.RefreshToken!);
+			var response = await Authorizer.RefreshOAuthTokenAsync(this.ClientId, this.ClientSecret, this.RefreshToken);
 
 			this.OAuthToken = response.Access_token;
 			this.RefreshToken = response.Refresh_token;
@@ -97,15 +105,12 @@ namespace TwitchLinkr
 		{
 			try
 			{
-				var response = await new OAuthToken().ValidateOAuthTokenAsync(OAuthToken);
+				var response = await Authorizer.ValidateOAuthTokenAsync(OAuthToken);
 				IsAuthorizedInternal = true;
 				return true;
 			} catch (Exception)
 			{
-
 				var refreshResult = await RefreshTokenAsync();
-
-				IsAuthorizedInternal = refreshResult;
 				return refreshResult;
 			}
 			
@@ -115,7 +120,7 @@ namespace TwitchLinkr
 		{
 			try
 			{
-				await new OAuthToken().RevokeOAuthTokenAsync(OAuthToken, ClientId);
+				await Authorizer.RevokeOAuthTokenAsync(OAuthToken, ClientId);
 				IsAuthorizedInternal = false;
 				return true;
 			} catch (Exception)
@@ -137,7 +142,7 @@ namespace TwitchLinkr
 					var validateResult = await ValidateTokenAsync();
 				} catch (Exception)
 				{
-					throw new InvalidOperationException("User is not authorized.");
+					throw new UnauthorizedException("User is not authorized.");
 				}
 			}
 
@@ -160,7 +165,7 @@ namespace TwitchLinkr
 				}
 				catch (Exception)
 				{
-					throw new InvalidOperationException("User is not authorized.");
+					throw new UnauthorizedException("User is not authorized.");
 				}
 			}
 
@@ -177,7 +182,135 @@ namespace TwitchLinkr
 		// ########             Poll functions             #########
 		// #########################################################
 
+		public async Task<string> CreatePollAsync(string broadcasterId, string title, string[] choices, int duration, int channelPointsPerVote = 500, bool enableChannelPointVoting = false, int bitsPerVote = 10, bool enableBitsVoting = false)
+		{
 
+			if (!IsAuthorizedInternal)
+			{
+				try
+				{
+					await ValidateTokenAsync();
+				}
+				catch (Exception)
+				{
+					throw new UnauthorizedException("User is not authorized.");
+				}
+			}
+
+			try
+			{
+				return (await PollRequests.CreatePollAsync(OAuthToken, ClientId, broadcasterId, title, choices, duration, channelPointsPerVote, enableChannelPointVoting, bitsPerVote, enableBitsVoting)).Id;
+			}
+			catch (Exception)
+			{
+				throw;
+			}
+		}
+
+		public async Task EndPollAsync(string broadcasterId, string pollId, bool archive = false)
+		{
+			if (!IsAuthorizedInternal)
+			{
+				try
+				{
+					await ValidateTokenAsync();
+				}
+				catch (Exception)
+				{
+					throw new UnauthorizedException("User is not authorized.");
+				}
+			}
+
+			try
+			{
+				await PollRequests.EndPollAsync(OAuthToken, ClientId, broadcasterId, pollId, archive);
+			}
+			catch (Exception)
+			{
+				throw;
+			}
+		}
+
+		private class PollPagination
+		{
+			public string broadcasterId { get; set; } = default!;
+			public string[]? pollIds { get; set; } = default!;
+			public int First { get; set; } = default!;
+			public string Cursor { get; set; } = default!;
+		}
+		private PollPagination? pollPagination = null;
+		public async Task<Poll[]> GetPollsAsync(string broadcasterId, string[]? pollIds, int first = 20, string cursor = "")
+		{
+			try
+			{
+				var response = await PollRequests.GetPollsAsync(OAuthToken, ClientId, broadcasterId, pollIds, first, cursor);
+
+				pollPagination = new PollPagination
+				{
+					broadcasterId = broadcasterId,
+					pollIds = pollIds,
+					First = first,
+					Cursor = response.Pagination.Cursor
+				};
+
+				Array.Sort(response.Data, (x, y) => x.StartedDateTime.CompareTo(y.StartedDateTime));
+
+				return response.Data;
+
+			}
+			catch (Exception)
+			{
+				throw;
+			}
+		}
+
+		public async Task<Poll[]> GetNextPollsAsync()
+		{
+			if (pollPagination == null)
+			{
+				throw new NotFoundException("No polls have been retrieved yet.");
+			}
+
+			try
+			{
+				var response = await PollRequests.GetPollsAsync(OAuthToken, ClientId, pollPagination.broadcasterId, pollPagination.pollIds, pollPagination.First, pollPagination.Cursor);
+
+				pollPagination.Cursor = response.Pagination.Cursor;
+
+				Array.Sort(response.Data, (x, y) => x.StartedDateTime.CompareTo(y.StartedDateTime));
+
+				return response.Data;
+			}
+			catch (Exception)
+			{
+				throw;
+			}
+		}
+
+		public async Task<Poll[]> GetAllPollsAsync(string broadcasterId, string[]? pollIds)
+		{
+			
+			if (pollIds != null && pollIds.Length <= 20 && pollIds.Length > 0)
+			{
+				return await GetPollsAsync(broadcasterId, pollIds);
+			}
+
+			List<Poll> allPolls = new List<Poll>();
+			
+			var polls = await GetPollsAsync(broadcasterId, null);
+			allPolls.AddRange(polls);
+
+			while (polls.Length == 20)
+			{
+				polls = await GetNextPollsAsync();
+				allPolls.AddRange(polls);
+			}
+
+			allPolls.Sort((x, y) => x.StartedDateTime.CompareTo(y.StartedDateTime));
+
+			return allPolls.ToArray();
+
+		}
 
 
 	}

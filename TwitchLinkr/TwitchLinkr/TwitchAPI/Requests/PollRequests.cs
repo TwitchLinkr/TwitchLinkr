@@ -24,6 +24,15 @@ internal static class PollRequests
 	{
 		const string endpoint = "https://api.twitch.tv/helix/polls";
 
+		if (choices.Length < 2)
+		{
+			throw new ArgumentOutOfRangeException("The poll must have at least two choices.", nameof(choices));
+		} else if (choices.Length > 5)
+		{
+			throw new ArgumentOutOfRangeException("The poll can have at most five choices.", nameof(choices));
+		}
+
+
 		// Format data content
 		var choiceArray = choices.Select(choice => new { title = choice }).ToArray();
 		var pollData = new
@@ -77,17 +86,21 @@ internal static class PollRequests
 	}
 
 	/// <summary>
-	/// Gets the current poll for a broadcaster using the provided OAuth token and client ID.	<br/>
+	/// Gets specific polls for a broadcaster using the provided OAuth token and client ID.	<br/>
 	/// Requires a user access token with scope channel:manage:polls or channel:read:polls if you're only reading polls.
 	/// </summary>
 	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
 	/// <param name="clientId">The client ID of the application.</param>
-	/// <param name="broadcasterId">The ID of the broadcaster whose poll to retrieve.</param>
-	/// <param name="first">The number of polls to retrieve. Maximum is 20, minimum is 1.</param>
+	/// <param name="broadcasterId">The ID of the broadcaster whose polls to retrieve.</param>
+	/// <param name="pollIds">An array of poll IDs to retrieve. Maximum of 20 Ids at a time</param>
+	/// <param name="first">The number of polls to retrieve. Maximum of 20 polls at a time.</param>
 	/// <param name="cursor">The cursor for the next page of results.</param>
 	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
-	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, int first = 20, string cursor = "")
+	public static async Task<PollResponseModel> GetPollsAsync(string oAuthToken, string clientId, string broadcasterId, string[]? pollIds, int first = 20, string cursor = "")
 	{
+		const string endpoint = "https://api.twitch.tv/helix/polls";
+
+
 		// Ensure the first value is within the valid range
 		if (first < 1 || first > 20)
 		{
@@ -107,57 +120,21 @@ internal static class PollRequests
 		{
 			parameters.Add(new("after", cursor));
 		}
-		
-		var pollResponse = await GetPollBase(oAuthToken, clientId, [.. parameters]);
-		return pollResponse;
-	}
-
-	/// <summary>
-	/// Gets specific polls for a broadcaster using the provided OAuth token and client ID.	<br/>
-	/// Requires a user access token with scope channel:manage:polls or channel:read:polls if you're only reading polls.
-	/// </summary>
-	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
-	/// <param name="clientId">The client ID of the application.</param>
-	/// <param name="broadcasterId">The ID of the broadcaster whose polls to retrieve.</param>
-	/// <param name="pollIds">An array of poll IDs to retrieve. Maximum of 20 Ids at a time</param>
-	/// <param name="first">The number of polls to retrieve. Maximum of 20 polls at a time.</param>
-	/// <param name="cursor">The cursor for the next page of results.</param>
-	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
-	public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, string[] pollIds, int first = 20, string cursor = "")
-	{
-		var parameters = new KeyValuePair<string, string>[]
-		{
-				new ("broadcaster_id", broadcasterId),
-				new ("first", first.ToString())
-		};
-
-		// Add cursor to parameters
-		if (string.IsNullOrEmpty(cursor))
-		{
-			parameters = parameters.Concat([new KeyValuePair<string, string>("after", cursor)]).ToArray();
-		}
 
 		// Add IDs to parameters
-		parameters = parameters.Concat(pollIds.Select(id => new KeyValuePair<string, string>("id", id))).ToArray();
-
-		return await GetPollBase(oAuthToken, clientId, parameters);
-	}
-
-	/// <summary>
-	/// Base method for getting polls using the provided OAuth token and client ID.
-	/// </summary>
-	/// <param name="oAuthToken">The OAuth token for authorization. Requires scope channel:manage:polls.</param>
-	/// <param name="clientId">The client ID of the application.</param>
-	/// <param name="parameters">The parameters for the request.</param>
-	/// <returns>A task that represents the asynchronous operation. The task result contains the <see cref="PollResponseModel"/>.</returns>
-	private static async Task<PollResponseModel> GetPollBase(string oAuthToken, string clientId, params KeyValuePair<string, string>[] parameters)
-	{
-		const string endpoint = "https://api.twitch.tv/helix/polls";
+		if (pollIds != null && pollIds.Length > 0)
+		{
+			parameters = parameters.Concat(
+									pollIds.Select(id => new KeyValuePair<string, string>("id", id)))
+									.ToList();
+		}
 
 		// Call the endpoint
-		var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, parameters);
+		var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, [.. parameters]);
 
 		// Deserialize the response
-		return JsonSerializer.Deserialize<PollResponseModel>(response)!;
+		var data = JsonSerializer.Deserialize<PollResponseModel>(response);
+
+		return data!;
 	}
 }

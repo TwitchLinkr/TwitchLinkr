@@ -38,7 +38,7 @@ namespace TwitchLinkr.TwitchAPI
 		}
 		public static async Task<PollResponseModel> GetPoll(string oAuthToken, string clientId, string broadcasterId, params string[] pollIds)
 		{
-			return await PollRequests.GetPoll(oAuthToken, clientId, broadcasterId, pollIds);
+			return await PollRequests.GetPollsAsync(oAuthToken, clientId, broadcasterId, pollIds);
 		}
 		
 	}

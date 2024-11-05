@@ -11,7 +11,7 @@ internal class PollResponseModel
 	public Pagination Pagination { get; set; } = default!;
 }
 
-internal class Poll
+public class Poll
 {
 	public string Id { get; set; } = default!;
 	public string BroadcasterId { get; set; } = default!;
@@ -29,7 +29,7 @@ internal class Poll
 	public DateTime StartedDateTime => DateTime.Parse(StartedAt);
 }
 
-internal class PollChoice
+public class PollChoice
 {
 	public string Id { get; set; } = default!;
 	public string Title { get; set; } = default!;
