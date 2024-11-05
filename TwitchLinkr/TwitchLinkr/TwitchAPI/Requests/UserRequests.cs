@@ -23,7 +23,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		/// <param name="logins">An array of user logins to fetch information for.</param>
 		/// <param name="ids">An array of user IDs to fetch information for.</param>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>
-		public static async Task<UserResponseModel> GetUsers(string oAuthToken, string clientId, string[] logins, string[] ids)
+		public static async Task<UserResponseModel> GetUsersAsync(string oAuthToken, string clientId, string[] logins, string[] ids)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/users";
 
@@ -61,7 +61,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 		/// <param name="clientId">The Client ID for authentication.</param>
 		/// <param name="descr">The new description for the user.</param>
 		/// <returns>A task that represents the asynchronous operation. The task result contains the user response model.</returns>
-		public static async Task<UserResponseModel> UpdateUser(string oAuthToken, string clientId, string descr)
+		public static async Task<UserResponseModel> UpdateUserAsync(string oAuthToken, string clientId, string descr)
 		{
 			const string endpoint = "https://api.twitch.tv/helix/users";
 

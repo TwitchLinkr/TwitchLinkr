@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace TwitchLinkr.TwitchAPI.APIResponseModels
 {
-	internal class UserResponseModel
+	public class UserResponseModel
 	{
 		public UserDataModel[] Data = default!;
 	}
 
-	internal class UserDataModel
+	public class UserDataModel
 	{
         public string Id { get; set; } = default!;
         public string Login { get; set; } = default!;

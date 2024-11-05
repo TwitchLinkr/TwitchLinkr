@@ -14,7 +14,7 @@ namespace TwitchLinkr.TwitchAPI
     /// </summary>
     internal class OAuthToken
     {
-        private readonly ILogger<OAuthToken> logger;
+        private readonly ILogger<OAuthToken>? logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OAuthToken"/> class.
@@ -25,6 +25,10 @@ namespace TwitchLinkr.TwitchAPI
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        public OAuthToken()
+        {
+		}
 
         /// <summary>
         /// Opens the default web browser to the Twitch OAuth authorization URL for the implicit grant flow.
@@ -60,8 +64,11 @@ namespace TwitchLinkr.TwitchAPI
 
             var url = $"https://id.twitch.tv/oauth2/authorize?{queryParams}";
 
-            // Log the URL for debugging purposes
-            logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", url);
+            if (logger != null)
+            {
+                // Log the URL for debugging purposes
+                logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", url);
+            }
 
             // Optionally, open the URL in the default web browser
             try
@@ -74,7 +81,10 @@ namespace TwitchLinkr.TwitchAPI
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to open the URL in the default web browser.");
+                if (logger != null)
+                {
+                    logger.LogError(ex, "Failed to open the URL in the default web browser.");
+                }
             }
 
             // Since this is a client-side flow, the method cannot directly retrieve the token.
@@ -121,7 +131,10 @@ namespace TwitchLinkr.TwitchAPI
 
                 if (tokenData == null || string.IsNullOrEmpty(tokenData.Access_token))
                 {
-                    logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", responseBody);
+                    if (logger != null)
+                    {
+                        logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", responseBody);
+                    }
                     throw new InvalidOperationException("Failed to retrieve access token.");
                 }
 
@@ -129,8 +142,11 @@ namespace TwitchLinkr.TwitchAPI
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
-                logger.LogInformation("The failed OAuth Request: {Request}", request);
+                if (logger != null)
+                {
+                    logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+                    logger.LogInformation("The failed OAuth Request: {Request}", request);
+                }
                 throw;
             }
         }
@@ -166,8 +182,11 @@ namespace TwitchLinkr.TwitchAPI
 
             var authorizationUrl = $"https://id.twitch.tv/oauth2/authorize?{queryParams}";
 
-            // Log the URL for debugging purposes
-            logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", authorizationUrl);
+            if (logger != null)
+            {
+                // Log the URL for debugging purposes
+                logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", authorizationUrl);
+            }
 
             // Optionally, open the URL in the default web browser
             try
@@ -180,7 +199,10 @@ namespace TwitchLinkr.TwitchAPI
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to open the URL in the default web browser.");
+                if (logger != null)
+                {
+                    logger.LogError(ex, "Failed to open the URL in the default web browser.");
+                }
                 throw;
             }
 
@@ -210,7 +232,10 @@ namespace TwitchLinkr.TwitchAPI
 
                 if (tokenData == null || string.IsNullOrEmpty(tokenData.Access_token))
                 {
-                    logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", tokenResponseBody);
+                    if (logger != null)
+                    {
+                        logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", tokenResponseBody);
+                    }
                     throw new InvalidOperationException("Failed to retrieve access token.");
                 }
 
@@ -218,7 +243,10 @@ namespace TwitchLinkr.TwitchAPI
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+                if (logger != null)
+                {
+					logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+				}
                 throw;
             }
         }
@@ -258,18 +286,27 @@ namespace TwitchLinkr.TwitchAPI
 
                 if (deviceData == null || string.IsNullOrEmpty(deviceData.device_code))
                 {
-                    logger.LogError("Failed to retrieve device code. Response: {ResponseBody}", deviceResponseBody);
+                    if (logger != null)
+                    {
+                        logger.LogError("Failed to retrieve device code. Response: {ResponseBody}", deviceResponseBody);
+                    }
                     throw new InvalidOperationException("Failed to retrieve device code.");
                 }
 
-                logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", deviceData.verification_uri);
+                if (logger != null)
+                {
+                    logger.LogInformation("Navigate to the following URL to authorize the application: {Url}", deviceData.verification_uri);
+                }
 
                 // Poll the token endpoint until the user has authorized the app
                 return await PollDeviceCodeGrantFlowTokenAsync(clientId, scopes, deviceData.device_code); ;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+                if (logger != null)
+                {
+                    logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+                }
                 throw;
             }
         }
@@ -320,11 +357,17 @@ namespace TwitchLinkr.TwitchAPI
                     if (ex.StatusCode == System.Net.HttpStatusCode.BadRequest)
                     {
                         // Handle 400 Bad Request specifically, which might indicate that the device code is not yet authorized
-                        logger.LogWarning("The device code has not yet been authorized. Retrying in 5 seconds.");
+                        if (logger != null)
+                        {
+							logger.LogWarning("The device code has not yet been authorized. Retrying in 5 seconds.");
+						}                        
                         await Task.Delay(TimeSpan.FromSeconds(5)); // Adjust the delay as needed
                         continue;
                     }
-                    logger.LogError(ex, "An error occurred while polling the OAuth token.");
+                    if (logger != null)
+                    {
+						logger.LogError(ex, "An error occurred while polling the OAuth token.");
+					}
                     throw;
                 }
 
@@ -360,11 +403,96 @@ namespace TwitchLinkr.TwitchAPI
             // check if the state matches
             if (res.state != state)
             {
-                logger.LogError("State does not match. Expected: {ExpectedState}, Received: {ReceivedState}", state, res.state);
+                if (logger != null)
+                {
+                    logger.LogError("State does not match. Expected: {ExpectedState}, Received: {ReceivedState}", state, res.state);
+                }
                 throw new InvalidOperationException("State does not match.");
             }
 
             return res.code;
+        }
+
+        public async Task<ValidateOAuthTokenResponseModel> ValidateOAuthTokenAsync(string oAuthToken)
+        {
+            const string endpoint = "https://id.twitch.tv/oauth2/validate";
+            
+            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            request.Headers.Add("Authorization", $"OAuth {oAuthToken}");
+            
+            var response = await EndpointCaller.CallAPIAsync(request);
+
+            var data = JsonSerializer.Deserialize<ValidateOAuthTokenResponseModel>(response);
+
+            return data!;
+        }
+
+        public async Task<OAuthTokenResponseModel> RefreshOAuthTokenAsync(string refreshToken, string clientId, string clientSecret)
+        {
+			var request = new HttpRequestMessage(HttpMethod.Post, "https://id.twitch.tv/oauth2/token");
+
+			var parameters = new Dictionary<string, string>
+            {
+                    { "client_id", clientId },
+                    { "client_secret", clientSecret },
+                    { "refresh_token", refreshToken },
+                    { "grant_type", "refresh_token" }
+				};
+
+			var content = new FormUrlEncodedContent(parameters);
+			request.Content = content;
+
+			try
+            {
+				string responseBody = await EndpointCaller.CallAPIAsync(request);
+				var tokenData = JsonSerializer.Deserialize<OAuthTokenResponseModel>(responseBody);
+
+				if (tokenData == null || string.IsNullOrEmpty(tokenData.Access_token))
+                {
+					if (logger != null)
+                    {
+						logger.LogError("Failed to retrieve access token. Response: {ResponseBody}", responseBody);
+					}
+					throw new InvalidOperationException("Failed to retrieve access token.");
+				}
+
+				return tokenData;
+			}
+			catch (Exception ex)
+            {
+				if (logger != null)
+                {
+					logger.LogError(ex, "An error occurred while retrieving the OAuth token.");
+					logger.LogInformation("The failed OAuth Request: {Request}", request);
+				}
+				throw;
+			}
+		}
+
+        public async Task<bool> RevokeOAuthTokenAsync(string oAuthToken, string clientId)
+        {
+            const string endpoint = "https://id.twitch.tv/oauth2/revoke";
+
+            var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
+            request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "client_id", clientId },
+                { "token", oAuthToken }
+			});
+
+            try
+            {
+				await EndpointCaller.CallAPIAsync(request);
+				return true;
+			}
+			catch (Exception ex)
+            {
+				if (logger != null)
+                {
+					logger.LogError(ex, "An error occurred while revoking the OAuth token.");
+				}
+				return false;
+            }
         }
     }
 
@@ -398,4 +526,13 @@ namespace TwitchLinkr.TwitchAPI
         /// </summary>
         public int interval { get; set; }
     }
+
+    internal class ValidateOAuthTokenResponseModel
+    {
+		public string client_id { get; set; } = default!;
+		public string login { get; set; } = default!;
+		public string[] scopes { get; set; } = default!;
+		public string user_id { get; set; } = default!;
+		public int expires_in { get; set; }
+	}
 }

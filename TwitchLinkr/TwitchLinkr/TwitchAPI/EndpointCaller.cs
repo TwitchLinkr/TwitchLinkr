@@ -10,7 +10,7 @@ namespace TwitchLinkr.TwitchAPI
     /// </summary>
     internal static class EndpointCaller
     {
-
+		
 		private static HttpClient dontUseClient = default!;
 
 		private static HttpClient Client

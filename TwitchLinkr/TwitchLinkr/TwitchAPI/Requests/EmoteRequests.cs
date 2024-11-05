@@ -31,6 +31,7 @@ namespace TwitchLinkr.TwitchAPI.Requests
 				new KeyValuePair<string, string>("broadcaster_id", broadcasterId)
 			};
 
+
 			// Call the endpoint
 			var response = await EndpointCaller.CallGetEndpointAsync(endpoint, oAuthToken, clientId, parameters.ToArray());
 

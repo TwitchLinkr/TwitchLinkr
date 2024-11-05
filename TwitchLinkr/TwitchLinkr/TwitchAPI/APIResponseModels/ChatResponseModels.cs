@@ -37,5 +37,5 @@ namespace TwitchLinkr.TwitchAPI.APIResponseModels
 		public bool UniqueChatMode { get; set; } = default!;
 		public bool NonModeratorChatDelay { get; set; } = default!;
 		public int NonModeratorChatDelayDuration { get; set; } = default!;
-	
+	}	
 }

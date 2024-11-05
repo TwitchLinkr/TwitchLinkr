@@ -26,7 +26,7 @@ public class OAuthTokenResponseModel
 	/// <summary>
 	/// The scope of the access token.
 	/// </summary>
-	public string Scope { get; set; } = default!;
+	public string[] Scope { get; set; } = default!;
 
 	/// <summary>
 	/// The state parameter that was passed in the request.
