@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.7" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
 	<PackageReference Include="Microsoft.AspNetCore.App" />
+	<PackageReference Include="ObsWebSocket.Net" Version="2.0.0" />
 	<PackageReference Include="System.Text.Encodings.Web" Version="8.0.0" />
   </ItemGroup>
 

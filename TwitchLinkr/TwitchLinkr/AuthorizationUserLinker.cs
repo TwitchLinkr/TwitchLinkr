@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TwitchLinkr.Interfaces;
 using TwitchLinkr.TwitchAPI;
 using TwitchLinkr.TwitchAPI.APIResponseModels;
 using TwitchLinkr.TwitchAPI.Exceptions;
@@ -32,14 +33,15 @@ namespace TwitchLinkr
 		private string ClientSecret { get; set; }
 		private bool IsAuthorizedInternal { get; set; } = false;
 
-		// public IsAuthorized is a property that returns the value of IsAuthorizedInternal such that it will be read-only
-		public bool IsAuthorized
+		public bool IsAuthorized // public IsAuthorized is a property that returns the value of IsAuthorizedInternal such that it will be read-only
 		{
 			get
 			{
 				return IsAuthorizedInternal;
 			}
-		}
+		} 
+
+		private IEventSubConnection? _eventSubConnection = null;
 
 		private AuthorizationUserLinker(string oAuthToken, string refreshToken, string clientId, string clientSecret, bool testMode = false)
 		{
@@ -312,6 +314,62 @@ namespace TwitchLinkr
 
 		}
 
+
+		// #########################################################
+		// ########           Eventsub functions            ########
+		// #########################################################
+
+
+		public async Task<bool> StartEventSubConnectionAsync(ConnectionType connectionType, string url)
+		{
+			if (!IsAuthorizedInternal)
+			{
+				try
+				{
+					await ValidateTokenAsync();
+				}
+				catch (Exception)
+				{
+					throw new UnauthorizedException("User is not authorized.");
+				}
+			}
+
+			if (_eventSubConnection != null)
+			{
+				await _eventSubConnection.DisconnectAsync();
+			}
+
+			_eventSubConnection = connectionType switch
+			{
+				ConnectionType.Websocket => new WebsocketClient(),
+				ConnectionType.WebHook => throw new NotImplementedException("No webhook connection implemented"),
+				ConnectionType.Conduit => throw new NotImplementedException("No Conduit connection implemented"),
+				_ => throw new NotImplementedException("Connection type not implemented.")
+			};
+
+			_eventSubConnection.MessageReceived += EventSubConnection_MessageReceived;
+
+			await _eventSubConnection.ConnectAsync(url);
+
+			return true;
+		}
+
+
+		public async Task<bool> StopEventSubConnectionAsync()
+		{
+			if (_eventSubConnection != null)
+			{
+				await _eventSubConnection.DisconnectAsync();
+				_eventSubConnection = null;
+			}
+
+			return true;
+		}
+
+		private void EventSubConnection_MessageReceived(string message)
+		{
+
+		}
 
 	}
 }
