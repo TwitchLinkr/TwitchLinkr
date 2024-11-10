@@ -12,6 +12,7 @@ namespace TwitchLinkr.Interfaces
 
 		public Task ConnectAsync(string url);
 		public Task DisconnectAsync();
+		public Task ReconnectAsync(int reconnectAttempts);
 		public Task RecieveMessagesAsync();
 
 	}

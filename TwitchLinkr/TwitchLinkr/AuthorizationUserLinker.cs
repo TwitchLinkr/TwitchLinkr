@@ -366,6 +366,16 @@ namespace TwitchLinkr
 			return true;
 		}
 
+		public async Task<bool> ReconnectEventSubConnectionAsync(int reconnectAttempts)
+		{
+			if (_eventSubConnection != null)
+			{
+				await _eventSubConnection.ReconnectAsync(reconnectAttempts);
+			}
+
+			return true;
+		}
+
 		private void EventSubConnection_MessageReceived(string message)
 		{
 
