@@ -15,7 +15,7 @@ namespace TwitchLinkr
 {
 	public class AuthorizationUserLinker
 	{
-
+		// Her er en sød kommentar til dig når du sidder og koder en dag: Du gør det godt! :D
 		// TODO: fully implement test mode
 		public bool TestModeEnabled { get; set; } = false;
 		private string BaseUri { 
@@ -341,10 +341,10 @@ namespace TwitchLinkr
 
 			_eventSubConnection = connectionType switch
 			{
-				ConnectionType.Websocket => new WebsocketClient(),
-				ConnectionType.WebHook => throw new NotImplementedException("No webhook connection implemented"),
-				ConnectionType.Conduit => throw new NotImplementedException("No Conduit connection implemented"),
-				_ => throw new NotImplementedException("Connection type not implemented.")
+				ConnectionType.Websocket	=> new WebsocketClient(),
+				ConnectionType.WebHook		=> throw new NotImplementedException("No webhook connection implemented"),
+				ConnectionType.Conduit		=> throw new NotImplementedException("No Conduit connection implemented"),
+				_							=> throw new NotImplementedException("Connection type not implemented.")
 			};
 
 			_eventSubConnection.MessageReceived += EventSubConnection_MessageReceived;

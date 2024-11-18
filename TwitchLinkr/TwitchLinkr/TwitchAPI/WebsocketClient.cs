@@ -1,6 +1,8 @@
 ﻿using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using TwitchLinkr.Interfaces;
+using TwitchLinkr.TwitchAPI.APIResponseModels;
 
 namespace TwitchLinkr.TwitchAPI
 {
@@ -9,26 +11,36 @@ namespace TwitchLinkr.TwitchAPI
 		private ClientWebSocket _webSocket = default!;
 		private CancellationTokenSource _cancellationTokenSource = default!;
 
-		public delegate void MessageReceivedHandler(string message);
-
+		public delegate void MessageReceivedHandler(WebsocketMessage<NotificationMetadata, NotificationPayload> message);
 		public event IEventSubConnection.MessageReceivedHandler MessageReceived = default!;
+
+		public delegate void WebsocketMessageReceivedHandler(WebsocketMessage<NotificationMetadata, NotificationPayload> message);
+		public event WebsocketMessageReceivedHandler WebsocketMessageReceived = default!;
 
 		public Queue<DateTime> PingTimes = new Queue<DateTime>();
 
 		private string Uri = default!;
 
 		public string ConnectionType { get; } = "websocket";
-
-		public async Task ConnectAsync(string uri)
+		
+		public WebsocketClient()
 		{
 			_webSocket = new ClientWebSocket();
 			_cancellationTokenSource = new CancellationTokenSource();
+		}
+
+
+		public async Task ConnectAsync(string uri)
+		{
 
 			await _webSocket.ConnectAsync(new Uri(uri), _cancellationTokenSource.Token);
 
-			Uri = uri;
-
-			await RecieveMessagesAsync();
+			if (_webSocket.State == WebSocketState.Open)
+			{
+				Uri = uri;
+				_ = Task.Run(() => RecieveMessagesAsync(_cancellationTokenSource.Token));
+				return;
+			}
 		}
 
 		public async Task DisconnectAsync()
@@ -45,48 +57,96 @@ namespace TwitchLinkr.TwitchAPI
 
 			if (_webSocket.State != WebSocketState.Open && reconnectAttempts > 0)
 			{
-				Task.Delay(5000).Wait(); // Wait 5 seconds before trying to reconnect
+				await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
 				await ReconnectAsync(reconnectAttempts - 1);
 			}
 		}
 
-		public async Task RecieveMessagesAsync()
+		public async Task ReconnectAsync(int reconnectAttempts, string uri)
 		{
-			var buffer = new byte[1024];
+			await DisconnectAsync();
+			await ConnectAsync(uri);
 
-			while (_webSocket.State == WebSocketState.Open)
+			if (_webSocket.State != WebSocketState.Open && reconnectAttempts > 0)
 			{
-				var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-
-				if (result.MessageType == WebSocketMessageType.Text)
-				{
-					var message = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
-					
-					// Check if the message is a PONG by opcode 0xA and has arrived 10 or more seconds after the corresponding PING
-					if (buffer[0] == 0xA && PingTimes.Count > 0)
-					{
-						PingTimes.Dequeue();
-					}
-					else
-					{
-						// If the message is not a PONG, invoke the MessageReceived event
-						MessageReceived?.Invoke(message);
-					}					
-				}
+				await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
+				await ReconnectAsync(reconnectAttempts - 1, uri);
 			}
 		}
 
+		public async Task RecieveMessagesAsync(CancellationToken cancellationToken)
+		{
+			var buffer = new byte[1024];
+
+			while (_webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+			{
+				var result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
+
+				if (result.MessageType != WebSocketMessageType.Text) continue;
+
+				var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
+					
+				// Check if the message is a PONG by opcode 0xA and has arrived 10 or more seconds after the corresponding PING
+				if (buffer[0] == 0xA && PingTimes.Count > 0)
+				{
+					PingTimes.Dequeue();
+					continue;
+				}
+				
+				WebsocketMessage<Metadata, Payload> websocketMessage = DeserializeResponse<WebsocketMessage<Metadata, Payload>>(message);
+
+				if (websocketMessage.Metadata!.MessageType == "notification")
+				{
+					var notificationMessage = new WebsocketMessage<NotificationMetadata, NotificationPayload> 
+													{ Metadata = (NotificationMetadata) websocketMessage.Metadata!, 
+														Payload = (NotificationPayload) websocketMessage.Payload!};
+					// If the message is not a service, invoke the MessageReceived event
+					WebsocketMessageReceived?.Invoke(notificationMessage);
+
+					continue;
+				}
+
+				var serviceMessage = new WebsocketMessage<Metadata, ServicePayload>
+												{ Metadata = websocketMessage.Metadata!,
+													Payload = (ServicePayload)websocketMessage.Payload!};
+				await HandleServiceMessagesAsync(serviceMessage, cancellationToken);
+				
+			}
+		}
+
+		// TODO: Implement service message handling
+
+		private async Task HandleServiceMessagesAsync(WebsocketMessage<Metadata, ServicePayload> message, CancellationToken cancellation)
+		{
+			
+		}
+
+		/// <summary>
+		/// Twitch server will close connection if message gets sent. Only use outside Twitch.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public async Task SendMessageAsync(string message)
 		{
 			var buffer = Encoding.UTF8.GetBytes(message);
 			await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Twitch server will close connection if message gets sent. Only use outside Twitch.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public async Task SendMessageAsync(byte[] message)
 		{
 			await _webSocket.SendAsync(new ArraySegment<byte>(message), WebSocketMessageType.Text, true, CancellationToken.None);
 		}
 
+		/// <summary>
+		/// Twitch server will close connection if message gets sent. Only use outside Twitch.
+		/// </summary>
+		/// <param name="message"></param>
+		/// <returns></returns>
 		public async Task SendMessageAsync(byte[] message, WebSocketMessageType messageType)
 		{
 			await _webSocket.SendAsync(new ArraySegment<byte>(message), messageType, true, CancellationToken.None);
@@ -110,6 +170,17 @@ namespace TwitchLinkr.TwitchAPI
 
 			}
 
+		}
+
+		private static readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+		{
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+			Converters = { new WebsocketMessageConverter() }
+		};
+
+		public static T DeserializeResponse<T>(string response)
+		{
+			return JsonSerializer.Deserialize<T>(response, JsonSerializerOptions)!;
 		}
 	}
 }
