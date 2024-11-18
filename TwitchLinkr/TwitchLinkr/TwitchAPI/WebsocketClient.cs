@@ -8,31 +8,44 @@ namespace TwitchLinkr.TwitchAPI
 {
 	internal class WebsocketClient : IEventSubConnection
 	{
-		private ClientWebSocket _webSocket = default!;
-		private CancellationTokenSource _cancellationTokenSource = default!;
 
+		private readonly  ClientWebSocket _webSocket = default!;
+
+		// CancellationTokenSource is used to cancel actions in the connection
+		private readonly CancellationTokenSource _cancellationTokenSource = default!;
+
+		// Subscribable message events containing metadata and payload
 		public delegate void MessageReceivedHandler(WebsocketMessage<NotificationMetadata, NotificationPayload> message);
-		public event IEventSubConnection.MessageReceivedHandler MessageReceived = default!;
+		public event IEventSubConnection.MessageReceivedHandlerRaw MessageReceivedRaw = default!;
 
 		public delegate void WebsocketMessageReceivedHandler(WebsocketMessage<NotificationMetadata, NotificationPayload> message);
 		public event WebsocketMessageReceivedHandler WebsocketMessageReceived = default!;
 
-		public Queue<DateTime> PingTimes = new Queue<DateTime>();
+		// Queue to keep track of PING times
+		private readonly Queue<DateTime> PingTimes = new Queue<DateTime>();
+
+		public WebSocketState State = WebSocketState.Closed;
+		public bool IsConnected => State == WebSocketState.Open;
+
+		private string ConnectionId = default!;
 
 		private string Uri = default!;
 
 		public string ConnectionType { get; } = "websocket";
 		
+		public Transport Transport { get; } = default!;
+
 		public WebsocketClient()
 		{
 			_webSocket = new ClientWebSocket();
 			_cancellationTokenSource = new CancellationTokenSource();
+			Transport = new Transport { Method = "websocket", SessionId = ConnectionId };
 		}
 
 
 		public async Task ConnectAsync(string uri)
 		{
-
+			State = WebSocketState.Connecting;
 			await _webSocket.ConnectAsync(new Uri(uri), _cancellationTokenSource.Token);
 
 			if (_webSocket.State == WebSocketState.Open)
@@ -40,40 +53,58 @@ namespace TwitchLinkr.TwitchAPI
 				Uri = uri;
 				_ = Task.Run(() => RecieveMessagesAsync(_cancellationTokenSource.Token));
 				return;
+			} 
+			else
+			{
+				await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
+				await ConnectAsync(uri);
 			}
 		}
-
 		public async Task DisconnectAsync()
 		{
+			State = WebSocketState.Closed;
 			_cancellationTokenSource?.Cancel();
 			await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed", CancellationToken.None);
 			_webSocket.Dispose();
 		}
-
-		public async Task ReconnectAsync(int reconnectAttempts)
+		public async Task ReconnectAsync(uint reconnectAttempts)
 		{
+			if (reconnectAttempts == 0)
+			{
+				throw new WebSocketException("Failed to reconnect");
+			}
+
 			await DisconnectAsync();
 			await ConnectAsync(Uri);
 
-			if (_webSocket.State != WebSocketState.Open && reconnectAttempts > 0)
+			if (_webSocket.State == WebSocketState.Open)
 			{
-				await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
-				await ReconnectAsync(reconnectAttempts - 1);
+				return;
 			}
-		}
 
-		public async Task ReconnectAsync(int reconnectAttempts, string uri)
+
+			await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
+			await ReconnectAsync(reconnectAttempts - 1);
+		}
+		public async Task ReconnectAsync(uint reconnectAttempts, string uri)
 		{
+			if (reconnectAttempts == 0)
+			{
+				throw new WebSocketException("Failed to reconnect");
+			}
+
 			await DisconnectAsync();
 			await ConnectAsync(uri);
 
-			if (_webSocket.State != WebSocketState.Open && reconnectAttempts > 0)
+			if (_webSocket.State == WebSocketState.Open)
 			{
-				await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
-				await ReconnectAsync(reconnectAttempts - 1, uri);
+				return;
 			}
-		}
 
+
+			await Task.Delay(5000); // Wait 5 seconds before trying to reconnect
+			await ReconnectAsync(reconnectAttempts - 1, uri);
+		}
 		public async Task RecieveMessagesAsync(CancellationToken cancellationToken)
 		{
 			var buffer = new byte[1024];
@@ -102,7 +133,7 @@ namespace TwitchLinkr.TwitchAPI
 														Payload = (NotificationPayload) websocketMessage.Payload!};
 					// If the message is not a service, invoke the MessageReceived event
 					WebsocketMessageReceived?.Invoke(notificationMessage);
-
+					MessageReceivedRaw?.Invoke(message);
 					continue;
 				}
 
@@ -113,12 +144,25 @@ namespace TwitchLinkr.TwitchAPI
 				
 			}
 		}
-
-		// TODO: Implement service message handling
-
 		private async Task HandleServiceMessagesAsync(WebsocketMessage<Metadata, ServicePayload> message, CancellationToken cancellation)
 		{
-			
+			switch (message.Metadata!.MessageType)
+			{
+				case "session_welcome":
+					ConnectionId = message.Payload!.Session.Id!;
+					State = WebSocketState.Open;
+					break;
+				case "session_keepalive":
+					break;
+				case "session_reconnect":
+					await ReconnectAsync(5, message.Payload!.Session.ReconnectUrl!);
+					break;
+				case "session_revocation":
+					await DisconnectAsync();
+					break;
+				default:
+					break;
+			}
 		}
 
 		/// <summary>
@@ -126,7 +170,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task SendMessageAsync(string message)
+		private async Task SendMessageAsync(string message)
 		{
 			var buffer = Encoding.UTF8.GetBytes(message);
 			await _webSocket.SendAsync(new ArraySegment<byte>(buffer), WebSocketMessageType.Text, true, CancellationToken.None);
@@ -137,7 +181,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task SendMessageAsync(byte[] message)
+		private async Task SendMessageAsync(byte[] message)
 		{
 			await _webSocket.SendAsync(new ArraySegment<byte>(message), WebSocketMessageType.Text, true, CancellationToken.None);
 		}
@@ -147,7 +191,7 @@ namespace TwitchLinkr.TwitchAPI
 		/// </summary>
 		/// <param name="message"></param>
 		/// <returns></returns>
-		public async Task SendMessageAsync(byte[] message, WebSocketMessageType messageType)
+		private async Task SendMessageAsync(byte[] message, WebSocketMessageType messageType)
 		{
 			await _webSocket.SendAsync(new ArraySegment<byte>(message), messageType, true, CancellationToken.None);
 		}

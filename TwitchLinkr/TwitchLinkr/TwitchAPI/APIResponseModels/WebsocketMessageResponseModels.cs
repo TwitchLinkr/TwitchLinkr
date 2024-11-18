@@ -77,6 +77,12 @@ namespace TwitchLinkr.TwitchAPI.APIResponseModels
 	internal class Transport
 	{
 		public string Method { get; set; } = default!;
-		public string SessionId { get; set; } = default!;
+		public string? SessionId { get; set; } = default!;
+		public string? Secret { get; set; } = default!;
+		public string? Callback { get; set; } = default!;
+		public string? ConduitId { get; set; } = default!;
+
 	}
+
+
 }

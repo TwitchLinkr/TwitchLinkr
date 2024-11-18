@@ -347,7 +347,7 @@ namespace TwitchLinkr
 				_							=> throw new NotImplementedException("Connection type not implemented.")
 			};
 
-			_eventSubConnection.MessageReceived += EventSubConnection_MessageReceived;
+			_eventSubConnection.MessageReceivedRaw += EventSubConnection_MessageReceived;
 
 			await _eventSubConnection.ConnectAsync(url);
 
@@ -366,7 +366,7 @@ namespace TwitchLinkr
 			return true;
 		}
 
-		public async Task<bool> ReconnectEventSubConnectionAsync(int reconnectAttempts)
+		public async Task<bool> ReconnectEventSubConnectionAsync(uint reconnectAttempts)
 		{
 			if (_eventSubConnection != null)
 			{
@@ -381,5 +381,28 @@ namespace TwitchLinkr
 
 		}
 
+		/// <summary>
+		/// Please refer to the twitch documentation for the correct values for the type, version and condition parameters.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="version"></param>
+		/// <param name="condition"></param>
+		/// <returns></returns>
+		public async Task<bool> SubscribeToEventSubAsync(string type, uint version, EventsubCondition condition)
+		{
+
+			try
+			{
+				await EventSubscriber.SubscibeToEventAsync(OAuthToken, ClientId, type, version, condition, _eventSubConnection!.Transport);
+
+				// Keep track of subscribed events
+
+				return true;
+			}
+			catch (Exception)
+			{
+				throw;
+			}
+		}
 	}
 }
